@@ -38,7 +38,8 @@ import { FiFilter } from "react-icons/fi";
 import { FiUpload } from "react-icons/fi";
 import { MdLock } from "react-icons/md";
 import SkillCard from "../components/SkillCard";
-import PDFReader from "../components/PDFReader";
+// import PDFReader from "../components/PDFReader";
+import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf";
 
 interface Job {
   company: string;
@@ -53,6 +54,7 @@ interface Certification {
   pay_range: string;
   top_3_job_titles: string[];
 }
+
 
 const DashboardPage = () => {
   const bgColor = useColorModeValue("gray.50", "gray.700");
@@ -69,6 +71,7 @@ const DashboardPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [text, setText] = useState("");
   const [certification1, setCertification1] = useState<Certification | null>(
     null
   );
@@ -135,6 +138,43 @@ const DashboardPage = () => {
     setResumeUploaded(true);
   };
 
+  const PDFExtractor = ({ file }: { file: File | null }) => {
+    if (!file) {
+        // Handle the case when file is null
+        console.error("No file provided.");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+        if (event.target && event.target.result instanceof ArrayBuffer) {
+            const arrayBuffer = event.target.result;
+            const loadingTask = getDocument(new Uint8Array(arrayBuffer));
+
+            try {
+                const pdfDocument = await loadingTask.promise;
+                let extractedText = "";
+
+                for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
+                    const page = await pdfDocument.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items
+                        .map((item) => ("str" in item ? item.str : ""))
+                        .join(" ");
+                    extractedText += pageText + " ";
+                }
+                console.log("Extracted Text:" + extractedText);
+                setText(extractedText);
+            } catch (error) {
+                console.error("Error while extracting text from PDF:", error);
+            }
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+};
+
   const handleSelectCertification = (value: any, setCertification: any) => {
     // Find the certification object based on the title selected
     const selectedCert = certifications.find(
@@ -170,6 +210,8 @@ const DashboardPage = () => {
       const files = event.target.files;
       if (files && files.length > 0 && files[0].type === "application/pdf") {
         setUploadedFile(files[0]);
+        PDFExtractor({ file: files[0] });
+        console.log(text)
         setResumeUploaded(true);
         console.log("Uploaded:", files[0].name);
       }
@@ -205,7 +247,7 @@ const DashboardPage = () => {
         <GradientText mb={2} fontSize="xl">
           Resume
         </GradientText>
-        {/* <PDFReader file={uploadedFile} /> */}
+         {/* <PDFReader file={uploadedFile} />  */}
         <Text mb={3}>Upload your resume</Text>
         {!resumeUploaded ? (
           <>

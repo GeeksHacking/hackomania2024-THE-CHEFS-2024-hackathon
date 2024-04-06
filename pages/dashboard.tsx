@@ -32,6 +32,7 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Stack,
 } from "@chakra-ui/react";
 import { FiFilter } from "react-icons/fi";
 import { FiUpload } from "react-icons/fi";
@@ -51,10 +52,43 @@ const DashboardPage = () => {
   });
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [certification1, setCertification1] = useState("");
+  const [certification2, setCertification2] = useState("");
+  const {
+    isOpen: isResumeModalOpen,
+    onOpen: onOpenResumeModal,
+    onClose: onCloseResumeModal,
+  } = useDisclosure();
+
+  // Separate disclosure for the Certification Insight Modal
+  const {
+    isOpen: isCertificationModalOpen,
+    onOpen: onOpenCertificationModal,
+    onClose: onCloseCertificationModal,
+  } = useDisclosure();
 
   const compatibilityColor = (percentage: number): string => {
     const hue = (percentage / 100) * 120; // Adjusted hue calculation
     return `hsl(${hue}, 100%, 50%)`; // Gradual transition from red to green
+  };
+
+  const certificationOptions = [
+    { label: "Project Management Professional", value: "pmp" },
+    { label: "Certified Associate in Project Management", value: "capm" },
+    // ... other options
+  ];
+
+  const CertificationDemand = ({ demand }: any) => {
+    return (
+      <Flex alignItems="center" justifyContent="space-between" mt={2}>
+        <Text fontSize="sm" fontWeight="semibold">
+          Certification Demand:
+        </Text>
+        <Text fontSize="sm" fontWeight="bold">
+          {demand} Jobs
+        </Text>
+      </Flex>
+    );
   };
 
   const measurements = [
@@ -113,6 +147,18 @@ const DashboardPage = () => {
     // Add more skills as needed
   ];
 
+  const handleUploadResume = () => {
+    // Logic to handle resume upload will go here
+    // For now, we'll just set the state to true
+    setResumeUploaded(true);
+  };
+
+  const handleCompare = () => {
+    // Here you would usually fetch the data for the selected certifications
+    console.log("Comparing", certification1, "vs", certification2);
+    onOpen();
+  };
+
   const ResumeCard = () => {
     // ref for the hidden file input element
     const fileInputRef = useRef(null);
@@ -139,7 +185,7 @@ const DashboardPage = () => {
         borderColor={borderColor}
         textAlign="left"
         position="relative"
-        onClick={resumeUploaded ? onOpen : undefined}
+        onClick={resumeUploaded ? onOpenResumeModal : undefined}
       >
         <GradientText mb={2} fontSize="xl">
           Resume
@@ -287,12 +333,6 @@ const DashboardPage = () => {
     </Modal>
   );
 
-  const handleUploadResume = () => {
-    // Logic to handle resume upload will go here
-    // For now, we'll just set the state to true
-    setResumeUploaded(true);
-  };
-
   useEffect(() => {
     fetch("/api/data")
       .then((response) => response.json())
@@ -320,7 +360,6 @@ const DashboardPage = () => {
           Toggle Resume Upload
         </Button>
       </Flex>
-
       {/* Updated Grid layout */}
       <Grid templateColumns={{ md: "1fr 2fr" }} gap={6}>
         {/* Left column (1/3 width) */}
@@ -342,10 +381,17 @@ const DashboardPage = () => {
             <Text mb={3}>
               Compare your certifications against market demands
             </Text>
-            <Select placeholder="Select certification" mb={3}></Select>
-            <Button backgroundColor={buttonColor} color="white">
-              Analyze
-            </Button>
+            <VStack spacing={3}>
+              <Select placeholder="Select certification 1" />
+              <Select placeholder="Select certification 2" />
+              <Button
+                backgroundColor={buttonColor}
+                color="white"
+                onClick={handleCompare}
+              >
+                Compare
+              </Button>
+            </VStack>
           </Box>
         </VStack>
         {/* Right column (2/3 width) */}
@@ -471,8 +517,70 @@ const DashboardPage = () => {
             </Box>
           </VStack>
         </VStack>
-      </Grid>
-      <ResumeModal isOpen={isOpen} onClose={onClose} />
+      </Grid>{" "}
+      <ResumeModal isOpen={isResumeModalOpen} onClose={onCloseResumeModal} />
+      {/* Modal for showing comparison */}
+      <Modal isOpen={isOpen} onClose={onClose} size="4xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Certification Insight</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Grid templateColumns="repeat(2, 1fr)" gap={6} mb={4}>
+              {/* Dropdowns */}
+              <Select
+                placeholder="Certification 1"
+                onChange={(e) => setCertification1(e.target.value)}
+              >
+                {certificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                placeholder="Certification 2"
+                onChange={(e) => setCertification2(e.target.value)}
+              >
+                {certificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            </Grid>
+            <Button
+              backgroundColor={buttonColor}
+              color="white"
+              width="full"
+              onClick={handleCompare}
+            >
+              Compare
+            </Button>
+            <Text fontSize="xl" fontWeight="bold" mt={6} textAlign="center">
+              Summary
+            </Text>
+            <Flex justifyContent="space-between" mt={4}>
+              <Box width="50%">
+                <Text fontSize="sm" fontWeight="bold">
+                  Certification Demand:
+                </Text>
+                <Text fontSize="sm" fontWeight="semibold">
+                  100 Jobs
+                </Text>
+              </Box>
+              <Box width="50%">
+                <Text fontSize="sm" fontWeight="bold">
+                  Certification Demand:
+                </Text>
+                <Text fontSize="sm" fontWeight="semibold">
+                  50 Jobs
+                </Text>
+              </Box>
+            </Flex>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

@@ -38,7 +38,7 @@ import "pdfjs-dist/legacy/build/pdf.worker";
 interface Job {
   company: string;
   compatibility?: number;
-  skills: string;
+  skills_required: string;
   title: string;
 }
 
@@ -415,13 +415,6 @@ const DashboardPage = () => {
               <GradientText mb={2} fontSize="xl">
                 Job Qualification Scale
               </GradientText>
-              {/* <IconButton
-                aria-label="Filter jobs"
-                icon={<FiFilter />}
-                colorScheme="blue"
-                variant="outline"
-                onClick={onOpenFilterModal}
-              /> */}
             </Flex>
             <Text mb={3}>
               {resumeUploaded
@@ -429,21 +422,33 @@ const DashboardPage = () => {
                 : "Upload your resume to see how your qualifications measure up to specific job requirements"}
             </Text>
             <TableContainer maxHeight="200px" overflowY="auto">
-              <Table variant="simple" size="sm">
-                <Thead>
+              <Table
+                variant="simple"
+                size="sm"
+                width="full"
+                sx={{ "th, td": { width: "1/3" } }}
+              >
+                <Thead position="sticky" top="0" bg={bgColor} zIndex="sticky">
                   <Tr>
-                    <Th>Company - Job Title</Th>
-                    <Th>Compatibility</Th>
-                    <Th>Skills Required</Th>
+                    <Th textAlign="left">Company - Job Title</Th>
+                    <Th textAlign="left">Compatibility</Th>
+                    <Th textAlign="left">Skills Required</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
                   {jobs.map((job, index) => (
                     <Tr key={index}>
-                      <Td>
-                        {job.company} - {job.title}
+                      <Td whiteSpace="normal" wordBreak="break-word">
+                        <Text textAlign="left" noOfLines={[1, 2, 3]}>
+                          {job.company} - {job.title}
+                        </Text>
                       </Td>
-                      <Td>
+                      {/* <Td whiteSpace="normal" wordBreak="break-word">
+                      <Text textAlign="center" noOfLines={[1, 2, 3]}>
+                        Pay Range: {certification1?.pay_range || "N/A"}
+                      </Text>
+                    </Td> */}
+                      <Td textAlign="left">
                         {resumeUploaded ? (
                           <Text
                             color={compatibilityColor(job.compatibility ?? 0)}
@@ -454,13 +459,17 @@ const DashboardPage = () => {
                               : "N/A"}
                           </Text>
                         ) : (
-                          <Flex align="center" color="gray.500">
+                          <Flex align="left" color="gray.500">
                             <Icon as={MdLock} mr={2} />
                             <Text>Resume Required</Text>
                           </Flex>
                         )}
                       </Td>
-                      <Td>{job.skills || "N/A"}</Td>
+                      <Td whiteSpace="normal" wordBreak="break-word">
+                        <Text textAlign="left" noOfLines={[1, 2, 4]}>
+                          {job.skills_required|| "N/A"}
+                        </Text>
+                      </Td>
                     </Tr>
                   ))}
                 </Tbody>

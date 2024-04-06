@@ -161,6 +161,7 @@ const DashboardPage = () => {
                 }
                 console.log("Extracted Text:" + extractedText);
                 setText(extractedText);
+                analyzeResume(extractedText);
             } catch (error) {
                 console.error("Error while extracting text from PDF:", error);
             }
@@ -196,6 +197,24 @@ const DashboardPage = () => {
       // You might want to show an error message or alert to the user
     }
   };
+
+  const analyzeResume = async (resumeText: string) => {
+    // Assume you have a backend endpoint /api/analyze-resume
+    try {
+        const response = await fetch('/api/useGemini', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text: resumeText })
+        });
+        const data = await response.json();
+        console.log('Analysis Result:', data);
+    } catch (error) {
+        console.error('Error analyzing resume:', error);
+    }
+};
+
 
   const ResumeCard = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);

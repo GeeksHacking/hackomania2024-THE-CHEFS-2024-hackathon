@@ -341,7 +341,7 @@ const DashboardPage = () => {
     <Box p={5}>
       <Flex justifyContent="flex-start" alignItems="center" mb={4}>
         <Image src="/logo.png" alt="Logo" boxSize="50px" mr={2} />
-        <GradientText fontSize="2xl">JBMX</GradientText>
+        <GradientText fontSize="2xl">JobSense</GradientText>
         <Button
           backgroundColor={buttonColor}
           color="white"
@@ -365,6 +365,7 @@ const DashboardPage = () => {
             borderRadius="lg"
             borderWidth="1px"
             borderColor={borderColor}
+            flex={1}
           >
             <GradientText mb={2} fontSize="xl">
               Certification Insight

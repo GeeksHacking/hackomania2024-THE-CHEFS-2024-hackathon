@@ -40,6 +40,20 @@ import { MdLock } from "react-icons/md";
 import SkillCard from "../components/SkillCard";
 import PDFReader from "../components/PDFReader";
 
+interface Job {
+  company: string;
+  compatibility?: number;
+  skills: string;
+  title: string;
+}
+
+interface Certification {
+  certificate_title: string;
+  certification_demand: string;
+  pay_range: string;
+  top_3_job_titles: string[];
+}
+
 const DashboardPage = () => {
   const bgColor = useColorModeValue("gray.50", "gray.700");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -53,8 +67,14 @@ const DashboardPage = () => {
   });
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [certification1, setCertification1] = useState("");
-  const [certification2, setCertification2] = useState("");
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [certification1, setCertification1] = useState<Certification | null>(
+    null
+  );
+  const [certification2, setCertification2] = useState<Certification | null>(
+    null
+  );
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const {
     isOpen: isResumeModalOpen,
@@ -68,8 +88,8 @@ const DashboardPage = () => {
   } = useDisclosure();
 
   const compatibilityColor = (percentage: number): string => {
-    const hue = (percentage / 100) * 120; // Adjusted hue calculation
-    return `hsl(${hue}, 100%, 50%)`; // Gradual transition from red to green
+    const hue = (percentage / 100) * 120;
+    return `hsl(${hue}, 100%, 50%)`;
   };
 
   const certificationOptions = [
@@ -140,6 +160,16 @@ const DashboardPage = () => {
     setResumeUploaded(true);
   };
 
+  const handleSelectCertification = (
+    certificationTitle: any,
+    setCertification: any
+  ) => {
+    const selectedCertification = certifications.find(
+      (cert) => cert.certificate_title === certificationTitle
+    );
+    setCertification(selectedCertification);
+  };
+
   const handleCompare = () => {
     // Here you would usually fetch the data for the selected certifications
     console.log("Comparing", certification1, "vs", certification2);
@@ -147,18 +177,35 @@ const DashboardPage = () => {
   };
 
   const ResumeCard = () => {
-    // ref for the hidden file input element
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // function to call when file is dropped or selected
-    const onFileDrop = (event: any) => {
-      const files = event.target.files || event.dataTransfer.files;
+    // Handle files selected via input element
+    const onFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (files && files.length > 0 && files[0].type === "application/pdf") {
+        setUploadedFile(files[0]);
+        setResumeUploaded(true);
+        console.log("Uploaded:", files[0].name);
+      }
+    };
+
+    // Handle files dropped onto the drop zone
+    const onFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const files = event.dataTransfer.files;
       if (files.length > 0 && files[0].type === "application/pdf") {
         setUploadedFile(files[0]);
         setResumeUploaded(true);
-        console.log(files);
+        console.log("Dropped:", files[0].name);
       }
     };
+
+    const triggerFileInput = () => {
+      if (fileInputRef.current) {
+        fileInputRef.current.click();
+      }
+    };
+
     const LabelBox = chakra(Box, {
       shouldForwardProp: (prop) => !["htmlFor"].includes(prop),
     });
@@ -180,37 +227,47 @@ const DashboardPage = () => {
         </GradientText>
         <Text mb={3}>Upload your resume</Text>
         {!resumeUploaded ? (
-          <LabelBox
-            as="label"
-            htmlFor="file-upload"
-            borderWidth={2}
-            borderStyle="dashed"
-            borderColor={borderColor}
-            borderRadius="lg"
-            p={10}
-            transition="all 0.24s ease-in-out"
-            _hover={{
-              bg: useColorModeValue("gray.100", "gray.600"),
-              borderColor: useColorModeValue("gray.300", "gray.500"),
-            }}
-            cursor="pointer"
-            textAlign="center"
-            m={0}
-            width="100%"
-            display="block"
-          >
-            <Icon as={FiUpload} w={12} h={12} mb={3} />
-            <Text>Drag & Drop your files here</Text>
-            <input
-              id="file-upload"
-              type="file"
-              multiple
-              style={{ display: "none" }}
-              ref={fileInputRef}
-              onChange={onFileDrop}
-              accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            />
-          </LabelBox>
+          <>
+            <LabelBox
+              as="label"
+              htmlFor="file-upload"
+              borderWidth={2}
+              borderStyle="dashed"
+              borderColor={borderColor}
+              borderRadius="lg"
+              p={10}
+              transition="all 0.24s ease-in-out"
+              _hover={{
+                bg: useColorModeValue("gray.100", "gray.600"),
+                borderColor: useColorModeValue("gray.300", "gray.500"),
+              }}
+              cursor="pointer"
+              textAlign="center"
+              m={0}
+              width="100%"
+              display="block"
+            >
+              <Icon as={FiUpload} w={12} h={12} mb={3} />
+              <Text>Drag & Drop your files here</Text>
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={onFileSelect}
+                accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              />
+            </LabelBox>
+            <Button
+              mt={4}
+              backgroundColor={buttonColor}
+              color="white"
+              onClick={triggerFileInput}
+            >
+              Upload
+            </Button>
+          </>
         ) : (
           <Flex
             direction={{ base: "column", md: "row" }}
@@ -328,27 +385,27 @@ const DashboardPage = () => {
   // };
 
   useEffect(() => {
-  fetch('/api/certification')
-    .then(response => response.json())
-    .then(data => {
-      // Do something with the data
-      console.log(data);
-    })
-    .catch(error => {
-      // Handle any errors here
-      console.error('Error fetching data: ', error);
-    });
-}, []);
+    fetch("/api/certification")
+      .then((response) => response.json())
+      .then((data) => {
+        // Do something with the data
+        console.log(data);
+        setCertifications(data);
+      })
+      .catch((error) => {
+        // Handle any errors here
+        console.error("Error fetching data: ", error);
+      });
+  }, []);
 
   useEffect(() => {
     fetch("/api/data")
       .then((response) => response.json())
       .then((data) => {
-        // Do something with the data
-        console.log(data);
+        console.log("Fetched data:", data); // Check the structure here
+        setJobs(data); // Assuming data is directly an array of Job objects
       })
       .catch((error) => {
-        // Handle any errors here
         console.error("Error fetching data: ", error);
       });
   }, []);
@@ -357,7 +414,7 @@ const DashboardPage = () => {
     <Box p={5}>
       <Flex justifyContent="flex-start" alignItems="center" mb={10}>
         <Image src="/logo.png" alt="Logo" boxSize="50px" mr={2} />
-        <GradientText fontSize="2xl">Product Name</GradientText>
+        <GradientText fontSize="2xl">JBMX</GradientText>
         <Button
           backgroundColor={buttonColor}
           color="white"
@@ -390,16 +447,16 @@ const DashboardPage = () => {
             </Text>
             <VStack spacing={3}>
               <Select placeholder="Select certification 1" width="full">
-                {certificationOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {certifications.map((certification, index) => (
+                  <option key={index} value={certification.certificate_title}>
+                    {certification.certificate_title}
                   </option>
                 ))}
               </Select>
               <Select placeholder="Select certification 2" width="full">
-                {certificationOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {certifications.map((certification, index) => (
+                  <option key={index} value={certification.certificate_title}>
+                    {certification.certificate_title}
                   </option>
                 ))}
               </Select>
@@ -453,28 +510,29 @@ const DashboardPage = () => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {tableDataset.map((data, index) => (
+                  {jobs.map((job, index) => (
                     <Tr key={index}>
-                      <Td>{data.company}</Td>
+                      <Td>
+                        {job.company} - {job.title}
+                      </Td>
                       <Td>
                         {resumeUploaded ? (
                           <Text
-                            color={compatibilityColor(data.compatibility)}
+                            color={compatibilityColor(job.compatibility ?? 0)}
                             fontWeight="bold"
                           >
-                            {data.compatibility}%
+                            {job.compatibility
+                              ? `${job.compatibility}%`
+                              : "N/A"}
                           </Text>
                         ) : (
                           <Flex align="center" color="gray.500">
-                            {" "}
-                            {/* Use Flex to align items and apply gray color */}
-                            <Icon as={MdLock} mr={2} />{" "}
-                            {/* Add margin to separate icon from text */}
+                            <Icon as={MdLock} mr={2} />
                             <Text>Resume Required</Text>
                           </Flex>
                         )}
                       </Td>
-                      <Td>{data.skills}</Td>
+                      <Td>{job.skills || "N/A"}</Td>
                     </Tr>
                   ))}
                 </Tbody>
@@ -547,34 +605,46 @@ const DashboardPage = () => {
             </Box>
           </VStack>
         </VStack>
-      </Grid>{" "}
+      </Grid>
       <ResumeModal isOpen={isResumeModalOpen} onClose={onCloseResumeModal} />
       {/* Modal for showing comparison */}
       <Modal isOpen={isOpen} onClose={onClose} size="4xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Certification Insight</ModalHeader>
+          <ModalHeader>
+            <GradientText>Certification Insight</GradientText>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Grid templateColumns="repeat(2, 1fr)" gap={6} mb={4}>
               {/* Dropdowns */}
               <Select
                 placeholder="Certification 1"
-                onChange={(e) => setCertification1(e.target.value)}
+                onChange={(e) =>
+                  handleSelectCertification(e.target.value, setCertification1)
+                }
               >
-                {certificationOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {certifications.map((cert) => (
+                  <option
+                    key={cert.certificate_title}
+                    value={cert.certificate_title}
+                  >
+                    {cert.certificate_title}
                   </option>
                 ))}
               </Select>
               <Select
                 placeholder="Certification 2"
-                onChange={(e) => setCertification2(e.target.value)}
+                onChange={(e) =>
+                  handleSelectCertification(e.target.value, setCertification2)
+                }
               >
-                {certificationOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {certifications.map((cert) => (
+                  <option
+                    key={cert.certificate_title}
+                    value={cert.certificate_title}
+                  >
+                    {cert.certificate_title}
                   </option>
                 ))}
               </Select>
@@ -583,31 +653,53 @@ const DashboardPage = () => {
               backgroundColor={buttonColor}
               color="white"
               width="full"
-              onClick={handleCompare}
+              onClick={handleCompare} // Ensure you have a function to handle comparison
             >
               Compare
             </Button>
-            <Text fontSize="xl" fontWeight="bold" mt={6} textAlign="center">
+            <Text fontSize="xl" fontWeight="bold" mt={6} textAlign="left">
               Summary
             </Text>
-            <Flex justifyContent="space-between" mt={4}>
-              <Box width="50%">
-                <Text fontSize="sm" fontWeight="bold">
-                  Certification Demand:
-                </Text>
-                <Text fontSize="sm" fontWeight="semibold">
-                  100 Jobs
-                </Text>
-              </Box>
-              <Box width="50%">
-                <Text fontSize="sm" fontWeight="bold">
-                  Certification Demand:
-                </Text>
-                <Text fontSize="sm" fontWeight="semibold">
-                  50 Jobs
-                </Text>
-              </Box>
-            </Flex>
+            <TableContainer>
+              <Table variant="simple" size="sm">
+                <Thead>
+                  <Tr>
+                    <Th>Certification 1</Th>
+                    <Th>Certification 2</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  <Tr>
+                    <Td textAlign="center">
+                      Certification Demand:{" "}
+                      {certification1?.certification_demand || "N/A"}
+                    </Td>
+                    <Td textAlign="center">
+                      Certification Demand:{" "}
+                      {certification2?.certification_demand || "N/A"}
+                    </Td>
+                  </Tr>
+                  <Tr>
+                    <Td textAlign="center">
+                      Pay Range: {certification1?.pay_range || "N/A"}
+                    </Td>
+                    <Td textAlign="center">
+                      Pay Range: {certification2?.pay_range || "N/A"}
+                    </Td>
+                  </Tr>
+                  <Tr>
+                    <Td textAlign="center">
+                      Top 3 Job Titles:{" "}
+                      {certification1?.top_3_job_titles.join(", ") || "N/A"}
+                    </Td>
+                    <Td textAlign="center">
+                      Top 3 Job Titles:{" "}
+                      {certification2?.top_3_job_titles.join(", ") || "N/A"}
+                    </Td>
+                  </Tr>
+                </Tbody>
+              </Table>
+            </TableContainer>
           </ModalBody>
         </ModalContent>
       </Modal>

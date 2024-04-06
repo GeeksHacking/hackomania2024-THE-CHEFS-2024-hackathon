@@ -4,14 +4,20 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(`AIzaSyDBrsK6EHTWwg5fC16cbIVCF5S0SJ2Tz3c`);
 
 // Exported function to generate content based on a supplied prompt
-export default async function generateContent(prompt) {
+// payload contains the extracted text of a PDF
+export default async function generateContent(payload, role) {
     // For text-only input, use the gemini-pro model
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `Parse and rate the resume on how compatible is the candidate to a role using an algorithm and do not justify your answers. The algorithm will compute a compatibility score from 1 to 100 based on how many skills required by the role is present in the resume. You must output the compatibility score. The skills required for the role is ${role.skills.toString()}. The resume is shown below: ${payload}`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = await response.text();
-    return text; // Returning the generated text
+    return {
+        compatibility: text,
+        role: role,
+    }; // Returning the generated text
 }
 
 // Usage example (you can comment this out or delete it when using the function in your project):

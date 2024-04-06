@@ -188,20 +188,50 @@ const DashboardPage = () => {
     }
   };
 
-  const analyzeResume = async (resumeText: string) => {
-    // Assume you have a backend endpoint /api/analyze-resume
-    try {
-      const response = await fetch("/api/useGemini", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: resumeText }),
-      });
-      const data = await response.json();
-      console.log("Analysis Result:", data);
-    } catch (error) {
-      console.error("Error analyzing resume:", error);
+  const analyzeResume = async (resumeText: string, skills: string) => {
+
+    // Get latest job from resume
+    const latestRole = await fetch('/api/latestRole', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text: resumeText, skills })
+    }).then(res => {
+      return res.json()
+    });
+
+    // Get all rows with title similar to user's current role
+    const relatedRoles = await fetch('/api/roles', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title: latestRole })
+    }).then(res => {
+      return res.json()
+    })
+
+    const analysis = []
+
+    for (let index = 0; index < relatedRoles.length; index++) {
+
+      // Assume you have a backend endpoint /api/analyze-resume
+      try {
+        const response = await fetch('/api/useGemini', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ text: resumeText, role: relatedRoles[index] })
+        });
+        const data = await response.json();
+        analysis.push(data)
+        console.log('Analysis Result:', data);
+      } catch (error) {
+        console.error('Error analyzing resume:', error);
+      }
+
     }
   };
 
@@ -467,7 +497,7 @@ const DashboardPage = () => {
                       </Td>
                       <Td whiteSpace="normal" wordBreak="break-word">
                         <Text textAlign="left" noOfLines={[1, 2, 4]}>
-                          {job.skills_required|| "N/A"}
+                          {job.skills_required || "N/A"}
                         </Text>
                       </Td>
                     </Tr>

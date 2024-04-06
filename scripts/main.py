@@ -53,7 +53,7 @@ def query(payload):
     return response.text
 
 
-def save_database(rows: list[Job]):
+def save_database(row: Job):
     if CONNECTION is None:
         raise Exception("Env file not found")
 
@@ -62,41 +62,39 @@ def save_database(rows: list[Job]):
 
         # use the cursor to interact with your database
         # cursor.execute("SELECT * FROM table")
-        for row in rows:
-            cursor.execute(
-                """
-                INSERT INTO bigdata_job (site, job_url, title, company, location, 
-                job_type, date_posted, interval, min_amount, max_amount, currency, 
-                is_remote, emails, description, years_of_experience, 
-                skills_required) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-                %s, %s, %s, %s, %s, %s);
-                """,
-                (
-                    row.site,
-                    row.job_url,
-                    row.title,
-                    row.company,
-                    row.location,
-                    row.job_type,
-                    row.date_posted,
-                    row.interval,
-                    row.min_amount,
-                    row.max_amount,
-                    row.currency,
-                    row.is_remote,
-                    row.emails,
-                    row.description,
-                    row.years_of_experience,
-                    row.skills_required,
-                ),
-            )
+        cursor.execute(
+            """
+            INSERT INTO bigdata_job (site, job_url, title, company, location, 
+            job_type, date_posted, interval, min_amount, max_amount, currency, 
+            is_remote, emails, description, years_of_experience, 
+            skills_required) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s);
+            """,
+            (
+                row.site,
+                row.job_url,
+                row.title,
+                row.company,
+                row.location,
+                row.job_type,
+                row.date_posted,
+                row.interval,
+                row.min_amount,
+                row.max_amount,
+                row.currency,
+                row.is_remote,
+                row.emails,
+                row.description,
+                row.years_of_experience,
+                row.skills_required,
+            ),
+        )
         conn.commit()
 
 
 def parse(file):
     df = pd.read_csv(file)
 
-    jobs = []
     for _, row in df.iterrows():
         job = Job(
             row["site"],
@@ -137,22 +135,29 @@ def parse(file):
             # )
 
             prompt = """
-            Extract the {} from the job opening as a Python variable called {}. If the
-            extracted values contain multiple items, store values in a list. If no
-            value is found, respond with the word, None.
+            Extract the {} from the job opening as a Python variable called {} without
+            special characters. If the extracted values contain multiple items, store
+            values seperated by comma. If no value is found, respond with the word,
+            None.
             """.format(
                 keyword, job.description
             )
 
             output = query(prompt)
 
-            if output is not None:
-                job[keyword] = literal_eval(output)
+            print(output)
+
+            if output is not None and output != "None":
+                if keyword == "skills_required":
+                    job[keyword] = output.split(",")
+                else:
+                    output = "".join(e for e in output if e.isalnum())
+                    job[keyword] = "".join(filter(str.isdigit, output))
+            else:
+                job[keyword] = None
             # print(json.dumps(job.__dict__, indent=4))
 
-        jobs.append(job)
-
-    save_database(jobs)
+        save_database(job)
 
 
 @click.command()

@@ -6,7 +6,7 @@ import "pdfjs-dist/legacy/build/pdf.worker";
 // Set the worker URL
 GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
-const PDFReader = ({ file }: { file: File }) => {
+const PDFReader = ({ file }: { file: File | null}) => {
   const [text, setText] = useState("");
 
   const extractTextFromPdf = async (file: File) => {

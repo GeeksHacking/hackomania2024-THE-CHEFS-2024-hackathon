@@ -19,33 +19,26 @@ import {
   Tr,
   Th,
   Td,
-  IconButton,
   TableContainer,
-  CircularProgress,
-  CircularProgressLabel,
-  SimpleGrid,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   useDisclosure,
-  Checkbox,
 } from "@chakra-ui/react";
-import { FiFilter } from "react-icons/fi";
 import { FiUpload } from "react-icons/fi";
 import { MdLock } from "react-icons/md";
 import SkillCard from "../components/SkillCard";
-// import PDFReader from "../components/PDFReader";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf";
 import { CheckCircleIcon } from "@chakra-ui/icons";
+import "pdfjs-dist/legacy/build/pdf.worker";
 
 interface Job {
   company: string;
   compatibility?: number;
-  skills: string;
+  skills_required: string;
   title: string;
 }
 
@@ -55,7 +48,6 @@ interface Certification {
   pay_range: string;
   top_3_job_titles: string[];
 }
-
 
 const DashboardPage = () => {
   const bgColor = useColorModeValue("gray.50", "gray.700");
@@ -84,11 +76,6 @@ const DashboardPage = () => {
     isOpen: isResumeModalOpen,
     onOpen: onOpenResumeModal,
     onClose: onCloseResumeModal,
-  } = useDisclosure();
-  const {
-    isOpen: isFilterModalOpen,
-    onOpen: onOpenFilterModal,
-    onClose: onCloseFilterModal,
   } = useDisclosure();
 
   const compatibilityColor = (percentage: number): string => {
@@ -135,41 +122,44 @@ const DashboardPage = () => {
 
   const PDFExtractor = ({ file }: { file: File | null }) => {
     if (!file) {
-        // Handle the case when file is null
-        console.error("No file provided.");
-        return;
+      console.error("No file provided.");
+      return;
     }
+
+    // Set the path to the PDF worker script
+    GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
     const reader = new FileReader();
 
     reader.onload = async (event) => {
-        if (event.target && event.target.result instanceof ArrayBuffer) {
-            const arrayBuffer = event.target.result;
-            const loadingTask = getDocument(new Uint8Array(arrayBuffer));
+      if (event.target && event.target.result instanceof ArrayBuffer) {
+        const arrayBuffer = event.target.result;
+        const loadingTask = getDocument(new Uint8Array(arrayBuffer));
 
-            try {
-                const pdfDocument = await loadingTask.promise;
-                let extractedText = "";
+        try {
+          const pdfDocument = await loadingTask.promise;
+          let extractedText = "";
 
-                for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
-                    const page = await pdfDocument.getPage(pageNum);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items
-                        .map((item) => ("str" in item ? item.str : ""))
-                        .join(" ");
-                    extractedText += pageText + " ";
-                }
-                console.log("Extracted Text:" + extractedText);
-                setText(extractedText);
-                analyzeResume(extractedText);
-            } catch (error) {
-                console.error("Error while extracting text from PDF:", error);
-            }
+          for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
+            const page = await pdfDocument.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item) => ("str" in item ? item.str : ""))
+              .join(" ");
+            extractedText += pageText + " ";
+          }
+          console.log("Extracted Text:" + extractedText);
+          // Assuming `setText` and `analyzeResume` are provided elsewhere
+          // setText(extractedText);
+          // analyzeResume(extractedText);
+        } catch (error) {
+          console.error("Error while extracting text from PDF:", error);
         }
+      }
     };
 
     reader.readAsArrayBuffer(file);
-};
+  };
 
   const handleSelectCertification = (value: any, setCertification: any) => {
     // Find the certification object based on the title selected
@@ -201,20 +191,19 @@ const DashboardPage = () => {
   const analyzeResume = async (resumeText: string) => {
     // Assume you have a backend endpoint /api/analyze-resume
     try {
-        const response = await fetch('/api/useGemini', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ text: resumeText })
-        });
-        const data = await response.json();
-        console.log('Analysis Result:', data);
+      const response = await fetch("/api/useGemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: resumeText }),
+      });
+      const data = await response.json();
+      console.log("Analysis Result:", data);
     } catch (error) {
-        console.error('Error analyzing resume:', error);
+      console.error("Error analyzing resume:", error);
     }
-};
-
+  };
 
   const ResumeCard = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -225,7 +214,7 @@ const DashboardPage = () => {
       if (files && files.length > 0 && files[0].type === "application/pdf") {
         setUploadedFile(files[0]);
         PDFExtractor({ file: files[0] });
-        console.log(text)
+        console.log(text);
         setResumeUploaded(true);
         console.log("Uploaded:", files[0].name);
       }
@@ -261,7 +250,7 @@ const DashboardPage = () => {
         <GradientText mb={2} fontSize="xl">
           Resume
         </GradientText>
-         {/* <PDFReader file={uploadedFile} />  */}
+        {/* <PDFReader file={uploadedFile} />  */}
         <Text mb={3}>Upload your resume</Text>
         {!resumeUploaded ? (
           <>
@@ -427,13 +416,6 @@ const DashboardPage = () => {
               <GradientText mb={2} fontSize="xl">
                 Job Qualification Scale
               </GradientText>
-              {/* <IconButton
-                aria-label="Filter jobs"
-                icon={<FiFilter />}
-                colorScheme="blue"
-                variant="outline"
-                onClick={onOpenFilterModal}
-              /> */}
             </Flex>
             <Text mb={3}>
               {resumeUploaded
@@ -441,21 +423,33 @@ const DashboardPage = () => {
                 : "Upload your resume to see how your qualifications measure up to specific job requirements"}
             </Text>
             <TableContainer maxHeight="200px" overflowY="auto">
-              <Table variant="simple" size="sm">
-                <Thead>
+              <Table
+                variant="simple"
+                size="sm"
+                width="full"
+                sx={{ "th, td": { width: "1/3" } }}
+              >
+                <Thead position="sticky" top="0" bg={bgColor} zIndex="sticky">
                   <Tr>
-                    <Th>Company - Job Title</Th>
-                    <Th>Compatibility</Th>
-                    <Th>Skills Required</Th>
+                    <Th textAlign="left">Company - Job Title</Th>
+                    <Th textAlign="left">Compatibility</Th>
+                    <Th textAlign="left">Skills Required</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
                   {jobs.map((job, index) => (
                     <Tr key={index}>
-                      <Td>
-                        {job.company} - {job.title}
+                      <Td whiteSpace="normal" wordBreak="break-word">
+                        <Text textAlign="left" noOfLines={[1, 2, 3]}>
+                          {job.company} - {job.title}
+                        </Text>
                       </Td>
-                      <Td>
+                      {/* <Td whiteSpace="normal" wordBreak="break-word">
+                      <Text textAlign="center" noOfLines={[1, 2, 3]}>
+                        Pay Range: {certification1?.pay_range || "N/A"}
+                      </Text>
+                    </Td> */}
+                      <Td textAlign="left">
                         {resumeUploaded ? (
                           <Text
                             color={compatibilityColor(job.compatibility ?? 0)}
@@ -466,13 +460,17 @@ const DashboardPage = () => {
                               : "N/A"}
                           </Text>
                         ) : (
-                          <Flex align="center" color="gray.500">
+                          <Flex align="left" color="gray.500">
                             <Icon as={MdLock} mr={2} />
                             <Text>Resume Required</Text>
                           </Flex>
                         )}
                       </Td>
-                      <Td>{job.skills || "N/A"}</Td>
+                      <Td whiteSpace="normal" wordBreak="break-word">
+                        <Text textAlign="left" noOfLines={[1, 2, 4]}>
+                          {job.skills_required|| "N/A"}
+                        </Text>
+                      </Td>
                     </Tr>
                   ))}
                 </Tbody>

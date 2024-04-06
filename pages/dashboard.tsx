@@ -40,6 +40,7 @@ import { MdLock } from "react-icons/md";
 import SkillCard from "../components/SkillCard";
 // import PDFReader from "../components/PDFReader";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf";
+import { CheckCircleIcon } from "@chakra-ui/icons";
 
 interface Job {
   company: string;
@@ -94,12 +95,6 @@ const DashboardPage = () => {
     const hue = (percentage / 100) * 120;
     return `hsl(${hue}, 100%, 50%)`;
   };
-
-  const measurements = [
-    { label: "Measurement 1", value: 70 },
-    { label: "Measurement 2", value: 40 },
-    { label: "Measurement 3", value: 80 },
-  ];
 
   const skills = [
     {
@@ -308,115 +303,13 @@ const DashboardPage = () => {
             alignItems="center"
             justifyContent="flex-start"
           >
-            <Box>
-              <Heading size="md" mb={4}>
-                Your Resume Score
-              </Heading>
-              <CircularProgress
-                value={87}
-                color={compatibilityColor(87)}
-                size="200px"
-                thickness="10px"
-                fontWeight="bold"
-              >
-                <CircularProgressLabel color={compatibilityColor(87)}>
-                  87%
-                </CircularProgressLabel>
-              </CircularProgress>
-            </Box>
-            <VStack align="stretch" pl={{ md: 6 }}>
-              {measurements.map((m, index) => (
-                <Box key={index} width="100%">
-                  <Text fontSize="md" fontWeight="bold">
-                    {m.label}
-                  </Text>
-                  <Progress
-                    value={m.value}
-                    size="sm"
-                    colorScheme="green"
-                    borderRadius="full"
-                    height="4px"
-                    width="100%"
-                  />
-                </Box>
-              ))}
-            </VStack>
+            <Icon as={CheckCircleIcon} color="green.500" boxSize={6} mr={2} />
+            <Text color="green.500">Resume Uploaded</Text>
           </Flex>
         )}
       </Box>
     );
   };
-
-  const ResumeModal = ({ isOpen, onClose }: any) => (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered>
-      <ModalOverlay />
-      <ModalContent
-        p={2}
-        bg={bgColor}
-        boxShadow="md"
-        borderRadius="lg"
-        borderWidth="1px"
-        borderColor={borderColor}
-      >
-        <ModalHeader>
-          <GradientText>Resume</GradientText>
-          <Heading size="md" mt={2} mb={4}>
-            Your Resume Score
-          </Heading>
-        </ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <Flex
-            direction={{ base: "column", md: "row" }}
-            alignItems="center"
-            justifyContent="flex-start"
-          >
-            <Box flexShrink={0}>
-              <CircularProgress
-                value={87}
-                color={compatibilityColor(87)}
-                size="200px"
-                thickness="10px"
-                fontWeight="bold"
-              >
-                <CircularProgressLabel color={compatibilityColor(87)}>
-                  87%
-                </CircularProgressLabel>
-              </CircularProgress>
-            </Box>
-            <VStack align="start" pl={{ md: 6 }}>
-              {measurements.map((m, index) => (
-                <Box key={index} width="100%">
-                  <Text fontSize="lg" fontWeight="bold">
-                    {m.label}
-                  </Text>
-                  <Progress
-                    value={m.value}
-                    size="md"
-                    colorScheme="green"
-                    borderRadius="full"
-                    height="4px"
-                    width="100%"
-                  />
-                </Box>
-              ))}
-            </VStack>
-          </Flex>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" onClick={onClose}>
-            Close
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
-
-  // const handleUploadResume = () => {
-  //   // Logic to handle resume upload will go here
-  //   // For now, we'll just set the state to true
-  //   setResumeUploaded(true);
-  // };
 
   useEffect(() => {
     fetch("/api/certification")
@@ -652,7 +545,6 @@ const DashboardPage = () => {
           </VStack>
         </VStack>
       </Grid>
-      <ResumeModal isOpen={isResumeModalOpen} onClose={onCloseResumeModal} />
       {/* Modal for showing comparison */}
       <Modal isOpen={isOpen} onClose={onClose} size="4xl">
         <ModalOverlay />
@@ -665,7 +557,8 @@ const DashboardPage = () => {
             <Grid templateColumns="repeat(2, 1fr)" gap={6} mb={4}>
               {/* Dropdowns */}
               <Select
-                placeholder="Certification 1"
+                value={certification1?.certificate_title || ""}
+                placeholder="Select certification 1"
                 onChange={(e) =>
                   handleSelectCertification(e.target.value, setCertification1)
                 }
@@ -680,7 +573,8 @@ const DashboardPage = () => {
                 ))}
               </Select>
               <Select
-                placeholder="Certification 2"
+                value={certification2?.certificate_title || ""}
+                placeholder="Select certification 2"
                 onChange={(e) =>
                   handleSelectCertification(e.target.value, setCertification2)
                 }

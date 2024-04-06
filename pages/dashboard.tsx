@@ -152,6 +152,7 @@ const DashboardPage = () => {
           // Assuming `setText` and `analyzeResume` are provided elsewhere
           // setText(extractedText);
           // analyzeResume(extractedText);
+          skillsToLearn(extractedText);
         } catch (error) {
           console.error("Error while extracting text from PDF:", error);
         }
@@ -187,6 +188,30 @@ const DashboardPage = () => {
       // You might want to show an error message or alert to the user
     }
   };
+
+const skillsToLearn = async (resumeText: string) => {
+    try {
+        const response = await fetch("/api/skills-to-learn", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ resumeText }), // Updated field name to match backend
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch skills to learn");
+        }
+
+        const data = await response.json();
+        console.log("Skills to learn:", data);
+        return data; // Return the data if needed for further processing
+    } catch (error) {
+        console.error("Error fetching skills to learn:", error);
+        // Handle the error gracefully, e.g., display an error message to the user
+    }
+}
+
 
   const analyzeResume = async (resumeText: string) => {
     // Assume you have a backend endpoint /api/analyze-resume

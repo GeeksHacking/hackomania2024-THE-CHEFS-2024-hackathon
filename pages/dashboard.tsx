@@ -151,7 +151,7 @@ const DashboardPage = () => {
           console.log("Extracted Text:" + extractedText);
           // Assuming `setText` and `analyzeResume` are provided elsewhere
           // setText(extractedText);
-          // analyzeResume(extractedText);
+          analyzeResume(extractedText);
         } catch (error) {
           console.error("Error while extracting text from PDF:", error);
         }
@@ -188,7 +188,7 @@ const DashboardPage = () => {
     }
   };
 
-  const analyzeResume = async (resumeText: string, skills: string) => {
+  const analyzeResume = async (resumeText: string) => {
 
     // Get latest job from resume
     const latestRole = await fetch('/api/latestRole', {
@@ -196,7 +196,7 @@ const DashboardPage = () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ text: resumeText, skills })
+      body: JSON.stringify({ resume: resumeText })
     }).then(res => {
       return res.json()
     });
@@ -207,7 +207,7 @@ const DashboardPage = () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ title: latestRole })
+      body: JSON.stringify({ title: latestRole.latestRole })
     }).then(res => {
       return res.json()
     })
@@ -223,7 +223,7 @@ const DashboardPage = () => {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ text: resumeText, role: relatedRoles[index] })
+          body: JSON.stringify({ resume: resumeText, role: relatedRoles[index] })
         });
         const data = await response.json();
         analysis.push(data)

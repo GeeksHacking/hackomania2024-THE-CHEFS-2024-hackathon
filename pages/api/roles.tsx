@@ -19,16 +19,16 @@ export default async function handler(
 
     try {
       // Replace 'your_table' with the actual table name you want to query
-      const result = await client.query(`SELECT * FROM public.bigdata_job WHERE title LIKE ${req.body.title}`);
+      const result = await client.query(`SELECT * FROM public.bigdata_job WHERE title LIKE '${req.body.title}' LIMIT 5`);
 
-      res.status(200).json(result.rows);
+      return res.status(200).json(result.rows);
     } catch (error) {
       // It's good to handle errors and send a corresponding response
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     } finally {
       client.release();
     }
   } else {
-    res.status(400).json({ message: 'Method not supported ' })
+    return res.status(400).json({ message: 'Method not supported ' })
   }
 }

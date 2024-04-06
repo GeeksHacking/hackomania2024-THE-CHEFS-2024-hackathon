@@ -32,11 +32,13 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Checkbox,
 } from "@chakra-ui/react";
 import { FiFilter } from "react-icons/fi";
 import { FiUpload } from "react-icons/fi";
 import { MdLock } from "react-icons/md";
 import SkillCard from "../components/SkillCard";
+import PDFReader from "../components/PDFReader";
 
 const DashboardPage = () => {
   const bgColor = useColorModeValue("gray.50", "gray.700");
@@ -51,11 +53,30 @@ const DashboardPage = () => {
   });
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [certification1, setCertification1] = useState("");
+  const [certification2, setCertification2] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const {
+    isOpen: isResumeModalOpen,
+    onOpen: onOpenResumeModal,
+    onClose: onCloseResumeModal,
+  } = useDisclosure();
+  const {
+    isOpen: isFilterModalOpen,
+    onOpen: onOpenFilterModal,
+    onClose: onCloseFilterModal,
+  } = useDisclosure();
 
   const compatibilityColor = (percentage: number): string => {
     const hue = (percentage / 100) * 120; // Adjusted hue calculation
     return `hsl(${hue}, 100%, 50%)`; // Gradual transition from red to green
   };
+
+  const certificationOptions = [
+    { label: "Project Management Professional", value: "pmp" },
+    { label: "Certified Associate in Project Management", value: "capm" },
+    // ... other options
+  ];
 
   const measurements = [
     { label: "Measurement 1", value: 70 },
@@ -113,76 +134,127 @@ const DashboardPage = () => {
     // Add more skills as needed
   ];
 
-  const ResumeCard = () => (
-    <Box
-      p={5}
-      bg={bgColor}
-      boxShadow="md"
-      borderRadius="lg"
-      borderWidth="1px"
-      borderColor={borderColor}
-      as={resumeUploaded ? "button" : undefined}
-      onClick={resumeUploaded ? onOpen : undefined}
-      textAlign="left"
-    >
-      <GradientText mb={2} fontSize="xl">
-        Resume
-      </GradientText>
-      {!resumeUploaded ? (
-        <>
-          <Text mb={3}>Upload your resume</Text>
-          <Button
-            leftIcon={<FiUpload />}
-            backgroundColor={buttonColor}
-            color="white"
-            onClick={handleUploadResume}
+  const handleUploadResume = () => {
+    // Logic to handle resume upload will go here
+    // For now, we'll just set the state to true
+    setResumeUploaded(true);
+  };
+
+  const handleCompare = () => {
+    // Here you would usually fetch the data for the selected certifications
+    console.log("Comparing", certification1, "vs", certification2);
+    onOpen();
+  };
+
+  const ResumeCard = () => {
+    // ref for the hidden file input element
+    const fileInputRef = useRef(null);
+
+    // function to call when file is dropped or selected
+    const onFileDrop = (event: any) => {
+      const files = event.target.files || event.dataTransfer.files;
+      if (files.length > 0 && files[0].type === "application/pdf") {
+        setUploadedFile(files[0]);
+        setResumeUploaded(true);
+        console.log(files);
+      }
+    };
+    const LabelBox = chakra(Box, {
+      shouldForwardProp: (prop) => !["htmlFor"].includes(prop),
+    });
+
+    return (
+      <Box
+        p={5}
+        bg={bgColor}
+        boxShadow="md"
+        borderRadius="lg"
+        borderWidth="1px"
+        borderColor={borderColor}
+        textAlign="left"
+        position="relative"
+        onClick={resumeUploaded ? onOpenResumeModal : undefined}
+      >
+        <GradientText mb={2} fontSize="xl">
+          Resume
+        </GradientText>
+        <Text mb={3}>Upload your resume</Text>
+        {!resumeUploaded ? (
+          <LabelBox
+            as="label"
+            htmlFor="file-upload"
+            borderWidth={2}
+            borderStyle="dashed"
+            borderColor={borderColor}
+            borderRadius="lg"
+            p={10}
+            transition="all 0.24s ease-in-out"
+            _hover={{
+              bg: useColorModeValue("gray.100", "gray.600"),
+              borderColor: useColorModeValue("gray.300", "gray.500"),
+            }}
+            cursor="pointer"
+            textAlign="center"
+            m={0}
+            width="100%"
+            display="block"
           >
-            Drag & Drop or browse
-          </Button>
-        </>
-      ) : (
-        <Flex
-          direction={{ base: "column", md: "row" }}
-          alignItems="center"
-          justifyContent="flex-start"
-        >
-          <Box>
-            <Heading size="md" mb={4}>
-              Your Resume Score
-            </Heading>
-            <CircularProgress
-              value={87}
-              color={compatibilityColor(87)}
-              size="160px"
-              thickness="10px"
-              fontWeight="bold"
-            >
-              <CircularProgressLabel color={compatibilityColor(87)}>
-                87%
-              </CircularProgressLabel>
-            </CircularProgress>
-          </Box>
-          <VStack align="stretch" pl={{ md: 6 }}>
-            {measurements.map((m, index) => (
-              <Box key={index} width="100%">
-                <Text fontSize="md" fontWeight="bold">
-                  {m.label}
-                </Text>
-                <Progress
-                  value={m.value}
-                  size="sm"
-                  colorScheme="green"
-                  borderRadius="full"
-                  height="4px"
-                  width="100%"
-                />
-              </Box>
-            ))}
-          </VStack>
-        </Flex>
-      )}
-    </Box>
-  );
+            <Icon as={FiUpload} w={12} h={12} mb={3} />
+            <Text>Drag & Drop your files here</Text>
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              style={{ display: "none" }}
+              ref={fileInputRef}
+              onChange={onFileDrop}
+              accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            />
+          </LabelBox>
+        ) : (
+          <Flex
+            direction={{ base: "column", md: "row" }}
+            alignItems="center"
+            justifyContent="flex-start"
+          >
+            <Box>
+              <Heading size="md" mb={4}>
+                Your Resume Score
+              </Heading>
+              <CircularProgress
+                value={87}
+                color={compatibilityColor(87)}
+                size="200px"
+                thickness="10px"
+                fontWeight="bold"
+              >
+                <CircularProgressLabel color={compatibilityColor(87)}>
+                  87%
+                </CircularProgressLabel>
+              </CircularProgress>
+            </Box>
+            <VStack align="stretch" pl={{ md: 6 }}>
+              {measurements.map((m, index) => (
+                <Box key={index} width="100%">
+                  <Text fontSize="md" fontWeight="bold">
+                    {m.label}
+                  </Text>
+                  <Progress
+                    value={m.value}
+                    size="sm"
+                    colorScheme="green"
+                    borderRadius="full"
+                    height="4px"
+                    width="100%"
+                  />
+                </Box>
+              ))}
+            </VStack>
+          </Flex>
+        )}
+      </Box>
+    );
+  };
 
   const ResumeModal = ({ isOpen, onClose }: any) => (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -231,9 +303,9 @@ const DashboardPage = () => {
                     value={m.value}
                     size="md"
                     colorScheme="green"
-                    borderRadius="full" // Rounded edges
-                    height="4px" // Thinner bar
-                    width="100%" // Longer bar
+                    borderRadius="full"
+                    height="4px"
+                    width="100%"
                   />
                 </Box>
               ))}
@@ -249,11 +321,11 @@ const DashboardPage = () => {
     </Modal>
   );
 
-  const handleUploadResume = () => {
-    // Logic to handle resume upload will go here
-    // For now, we'll just set the state to true
-    setResumeUploaded(true);
-  };
+  // const handleUploadResume = () => {
+  //   // Logic to handle resume upload will go here
+  //   // For now, we'll just set the state to true
+  //   setResumeUploaded(true);
+  // };
 
   useEffect(() => {
   fetch('/api/certification')
@@ -268,14 +340,33 @@ const DashboardPage = () => {
     });
 }, []);
 
+  useEffect(() => {
+    fetch("/api/data")
+      .then((response) => response.json())
+      .then((data) => {
+        // Do something with the data
+        console.log(data);
+      })
+      .catch((error) => {
+        // Handle any errors here
+        console.error("Error fetching data: ", error);
+      });
+  }, []);
 
   return (
     <Box p={5}>
       <Flex justifyContent="flex-start" alignItems="center" mb={10}>
         <Image src="/logo.png" alt="Logo" boxSize="50px" mr={2} />
         <GradientText fontSize="2xl">Product Name</GradientText>
+        <Button
+          backgroundColor={buttonColor}
+          color="white"
+          onClick={handleUploadResume}
+          ml={4}
+        >
+          Toggle Resume Upload
+        </Button>
       </Flex>
-
       {/* Updated Grid layout */}
       <Grid templateColumns={{ md: "1fr 2fr" }} gap={6}>
         {/* Left column (1/3 width) */}
@@ -297,10 +388,30 @@ const DashboardPage = () => {
             <Text mb={3}>
               Compare your certifications against market demands
             </Text>
-            <Select placeholder="Select certification" mb={3}></Select>
-            <Button backgroundColor={buttonColor} color="white">
-              Analyze
-            </Button>
+            <VStack spacing={3}>
+              <Select placeholder="Select certification 1" width="full">
+                {certificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+              <Select placeholder="Select certification 2" width="full">
+                {certificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+              <Button
+                backgroundColor={buttonColor}
+                color="white"
+                onClick={handleCompare}
+                width="full"
+              >
+                Compare
+              </Button>
+            </VStack>
           </Box>
         </VStack>
         {/* Right column (2/3 width) */}
@@ -322,8 +433,9 @@ const DashboardPage = () => {
               <IconButton
                 aria-label="Filter jobs"
                 icon={<FiFilter />}
-                colorScheme="blue" // Sets the icon button color to blue
-                variant="outline" // Gives the button an outlined style
+                colorScheme="blue"
+                variant="outline"
+                onClick={onOpenFilterModal}
               />
             </Flex>
             <Text mb={3}>
@@ -353,7 +465,13 @@ const DashboardPage = () => {
                             {data.compatibility}%
                           </Text>
                         ) : (
-                          "Resume Required"
+                          <Flex align="center" color="gray.500">
+                            {" "}
+                            {/* Use Flex to align items and apply gray color */}
+                            <Icon as={MdLock} mr={2} />{" "}
+                            {/* Add margin to separate icon from text */}
+                            <Text>Resume Required</Text>
+                          </Flex>
                         )}
                       </Td>
                       <Td>{data.skills}</Td>
@@ -386,17 +504,26 @@ const DashboardPage = () => {
                   <Text mb={3} fontWeight="semibold">
                     Suggested Skills to Learn:
                   </Text>
-                  <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                  <Flex
+                    overflowX="auto"
+                    py={2} // Add padding on the y-axis if needed
+                  >
                     {skills.map((skill, index) => (
-                      <SkillCard
+                      <Box
                         key={index}
-                        title={skill.title}
-                        description={skill.description}
-                        points={skill.points}
-                        outcome={skill.outcome}
-                      />
+                        minWidth="220px" // Give a minimum width to your SkillCard components
+                        flex="0 0 auto" // This makes sure that the box doesn't shrink
+                        mx={2} // Add margin on the x-axis for spacing between items
+                      >
+                        <SkillCard
+                          title={skill.title}
+                          description={skill.description}
+                          points={skill.points}
+                          outcome={skill.outcome}
+                        />
+                      </Box>
                     ))}
-                  </SimpleGrid>
+                  </Flex>
                 </>
               ) : (
                 <Flex
@@ -420,8 +547,92 @@ const DashboardPage = () => {
             </Box>
           </VStack>
         </VStack>
-      </Grid>
-      <ResumeModal isOpen={isOpen} onClose={onClose} />
+      </Grid>{" "}
+      <ResumeModal isOpen={isResumeModalOpen} onClose={onCloseResumeModal} />
+      {/* Modal for showing comparison */}
+      <Modal isOpen={isOpen} onClose={onClose} size="4xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Certification Insight</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Grid templateColumns="repeat(2, 1fr)" gap={6} mb={4}>
+              {/* Dropdowns */}
+              <Select
+                placeholder="Certification 1"
+                onChange={(e) => setCertification1(e.target.value)}
+              >
+                {certificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                placeholder="Certification 2"
+                onChange={(e) => setCertification2(e.target.value)}
+              >
+                {certificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            </Grid>
+            <Button
+              backgroundColor={buttonColor}
+              color="white"
+              width="full"
+              onClick={handleCompare}
+            >
+              Compare
+            </Button>
+            <Text fontSize="xl" fontWeight="bold" mt={6} textAlign="center">
+              Summary
+            </Text>
+            <Flex justifyContent="space-between" mt={4}>
+              <Box width="50%">
+                <Text fontSize="sm" fontWeight="bold">
+                  Certification Demand:
+                </Text>
+                <Text fontSize="sm" fontWeight="semibold">
+                  100 Jobs
+                </Text>
+              </Box>
+              <Box width="50%">
+                <Text fontSize="sm" fontWeight="bold">
+                  Certification Demand:
+                </Text>
+                <Text fontSize="sm" fontWeight="semibold">
+                  50 Jobs
+                </Text>
+              </Box>
+            </Flex>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+      {/* Filter Modal */}
+      <Modal isOpen={isFilterModalOpen} onClose={onCloseFilterModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Filter Jobs</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {/* Add your filter options here */}
+            <VStack spacing={4}>
+              <Checkbox>Option 1</Checkbox>
+              <Checkbox>Option 2</Checkbox>
+              {/* Add more options as needed */}
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={onCloseFilterModal}>
+              Close
+            </Button>
+            <Button variant="ghost">Apply Filters</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

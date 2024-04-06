@@ -39,7 +39,7 @@ const SkillCard: React.FC<SkillCardProps> = ({
         <Text fontSize="sm" mb={3} fontWeight="semibold">
           {outcome}
         </Text>
-        <Button colorScheme="purple" width="full">
+        <Button backgroundColor="#7E00FB" color="white" width="full">
           Learn More
         </Button>
       </VStack>

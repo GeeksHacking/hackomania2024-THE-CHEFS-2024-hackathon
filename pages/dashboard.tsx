@@ -113,76 +113,114 @@ const DashboardPage = () => {
     // Add more skills as needed
   ];
 
-  const ResumeCard = () => (
-    <Box
-      p={5}
-      bg={bgColor}
-      boxShadow="md"
-      borderRadius="lg"
-      borderWidth="1px"
-      borderColor={borderColor}
-      as={resumeUploaded ? "button" : undefined}
-      onClick={resumeUploaded ? onOpen : undefined}
-      textAlign="left"
-    >
-      <GradientText mb={2} fontSize="xl">
-        Resume
-      </GradientText>
-      {!resumeUploaded ? (
-        <>
-          <Text mb={3}>Upload your resume</Text>
-          <Button
-            leftIcon={<FiUpload />}
-            backgroundColor={buttonColor}
-            color="white"
-            onClick={handleUploadResume}
+  const ResumeCard = () => {
+    // ref for the hidden file input element
+    const fileInputRef = useRef(null);
+
+    // function to call when file is dropped or selected
+    const onFileDrop = (event: any) => {
+      const files = event.target.files || event.dataTransfer.files;
+      // Handle file upload...
+      setResumeUploaded(true);
+      console.log(files);
+    };
+
+    const LabelBox = chakra(Box, {
+      shouldForwardProp: (prop) => !["htmlFor"].includes(prop),
+    });
+
+    return (
+      <Box
+        p={5}
+        bg={bgColor}
+        boxShadow="md"
+        borderRadius="lg"
+        borderWidth="1px"
+        borderColor={borderColor}
+        textAlign="left"
+        position="relative"
+        onClick={resumeUploaded ? onOpen : undefined}
+      >
+        <GradientText mb={2} fontSize="xl">
+          Resume
+        </GradientText>
+        <Text mb={3}>Upload your resume</Text>
+        {!resumeUploaded ? (
+          <LabelBox
+            as="label"
+            htmlFor="file-upload"
+            borderWidth={2}
+            borderStyle="dashed"
+            borderColor={borderColor}
+            borderRadius="lg"
+            p={10}
+            transition="all 0.24s ease-in-out"
+            _hover={{
+              bg: useColorModeValue("gray.100", "gray.600"),
+              borderColor: useColorModeValue("gray.300", "gray.500"),
+            }}
+            cursor="pointer"
+            textAlign="center"
+            m={0}
+            width="100%"
+            display="block"
           >
-            Drag & Drop or browse
-          </Button>
-        </>
-      ) : (
-        <Flex
-          direction={{ base: "column", md: "row" }}
-          alignItems="center"
-          justifyContent="flex-start"
-        >
-          <Box>
-            <Heading size="md" mb={4}>
-              Your Resume Score
-            </Heading>
-            <CircularProgress
-              value={87}
-              color={compatibilityColor(87)}
-              size="160px"
-              thickness="10px"
-              fontWeight="bold"
-            >
-              <CircularProgressLabel color={compatibilityColor(87)}>
-                87%
-              </CircularProgressLabel>
-            </CircularProgress>
-          </Box>
-          <VStack align="stretch" pl={{ md: 6 }}>
-            {measurements.map((m, index) => (
-              <Box key={index} width="100%">
-                <Text fontSize="md" fontWeight="bold">
-                  {m.label}
-                </Text>
-                <Progress
-                  value={m.value}
-                  size="sm"
-                  colorScheme="green"
-                  borderRadius="full"
-                  height="4px"
-                  width="100%"
-                />
-              </Box>
-            ))}
-          </VStack>
-        </Flex>
-      )}
-    </Box>
-  );
+            <Icon as={FiUpload} w={12} h={12} mb={3} />
+            <Text>Drag & Drop your files here</Text>
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              style={{ display: "none" }}
+              ref={fileInputRef}
+              onChange={onFileDrop}
+              accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            />
+          </LabelBox>
+        ) : (
+          <Flex
+            direction={{ base: "column", md: "row" }}
+            alignItems="center"
+            justifyContent="flex-start"
+          >
+            <Box>
+              <Heading size="md" mb={4}>
+                Your Resume Score
+              </Heading>
+              <CircularProgress
+                value={87}
+                color={compatibilityColor(87)}
+                size="160px"
+                thickness="10px"
+                fontWeight="bold"
+              >
+                <CircularProgressLabel color={compatibilityColor(87)}>
+                  87%
+                </CircularProgressLabel>
+              </CircularProgress>
+            </Box>
+            <VStack align="stretch" pl={{ md: 6 }}>
+              {measurements.map((m, index) => (
+                <Box key={index} width="100%">
+                  <Text fontSize="md" fontWeight="bold">
+                    {m.label}
+                  </Text>
+                  <Progress
+                    value={m.value}
+                    size="sm"
+                    colorScheme="green"
+                    borderRadius="full"
+                    height="4px"
+                    width="100%"
+                  />
+                </Box>
+              ))}
+            </VStack>
+          </Flex>
+        )}
+      </Box>
+    );
+  };
 
   const ResumeModal = ({ isOpen, onClose }: any) => (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -231,9 +269,9 @@ const DashboardPage = () => {
                     value={m.value}
                     size="md"
                     colorScheme="green"
-                    borderRadius="full" // Rounded edges
-                    height="4px" // Thinner bar
-                    width="100%" // Longer bar
+                    borderRadius="full"
+                    height="4px"
+                    width="100%"
                   />
                 </Box>
               ))}
@@ -255,25 +293,32 @@ const DashboardPage = () => {
     setResumeUploaded(true);
   };
 
-//   useEffect(() => {
-//   fetch('/api/data')
-//     .then(response => response.json())
-//     .then(data => {
-//       // Do something with the data
-//       console.log(data);
-//     })
-//     .catch(error => {
-//       // Handle any errors here
-//       console.error('Error fetching data: ', error);
-//     });
-// }, []);
-
+  useEffect(() => {
+    fetch("/api/data")
+      .then((response) => response.json())
+      .then((data) => {
+        // Do something with the data
+        console.log(data);
+      })
+      .catch((error) => {
+        // Handle any errors here
+        console.error("Error fetching data: ", error);
+      });
+  }, []);
 
   return (
     <Box p={5}>
       <Flex justifyContent="flex-start" alignItems="center" mb={10}>
         <Image src="/logo.png" alt="Logo" boxSize="50px" mr={2} />
         <GradientText fontSize="2xl">Product Name</GradientText>
+        <Button
+          backgroundColor={buttonColor}
+          color="white"
+          onClick={handleUploadResume}
+          ml={4}
+        >
+          Toggle Resume Upload
+        </Button>
       </Flex>
 
       {/* Updated Grid layout */}
@@ -353,7 +398,13 @@ const DashboardPage = () => {
                             {data.compatibility}%
                           </Text>
                         ) : (
-                          "Resume Required"
+                          <Flex align="center" color="gray.500">
+                            {" "}
+                            {/* Use Flex to align items and apply gray color */}
+                            <Icon as={MdLock} mr={2} />{" "}
+                            {/* Add margin to separate icon from text */}
+                            <Text>Resume Required</Text>
+                          </Flex>
                         )}
                       </Td>
                       <Td>{data.skills}</Td>

@@ -32,6 +32,7 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Checkbox,
 } from "@chakra-ui/react";
 import { FiFilter } from "react-icons/fi";
 import { FiUpload } from "react-icons/fi";
@@ -60,12 +61,10 @@ const DashboardPage = () => {
     onOpen: onOpenResumeModal,
     onClose: onCloseResumeModal,
   } = useDisclosure();
-
-  // Separate disclosure for the Certification Insight Modal
   const {
-    isOpen: isCertificationModalOpen,
-    onOpen: onOpenCertificationModal,
-    onClose: onCloseCertificationModal,
+    isOpen: isFilterModalOpen,
+    onOpen: onOpenFilterModal,
+    onClose: onCloseFilterModal,
   } = useDisclosure();
 
   const compatibilityColor = (percentage: number): string => {
@@ -78,19 +77,6 @@ const DashboardPage = () => {
     { label: "Certified Associate in Project Management", value: "capm" },
     // ... other options
   ];
-
-  const CertificationDemand = ({ demand }: any) => {
-    return (
-      <Flex alignItems="center" justifyContent="space-between" mt={2}>
-        <Text fontSize="sm" fontWeight="semibold">
-          Certification Demand:
-        </Text>
-        <Text fontSize="sm" fontWeight="bold">
-          {demand} Jobs
-        </Text>
-      </Flex>
-    );
-  };
 
   const measurements = [
     { label: "Measurement 1", value: 70 },
@@ -135,15 +121,6 @@ const DashboardPage = () => {
         "High demand for Python developers",
       ],
       outcome: "+20% Job Compatibility",
-    },
-    {
-      title: "Project Management",
-      description: "Why Learn it?",
-      points: [
-        "Essential skill for leading teams and delivering projects",
-        "In-demand skill across various industries",
-      ],
-      outcome: "+18% Job Compatibility",
     },
     {
       title: "Project Management",
@@ -247,7 +224,7 @@ const DashboardPage = () => {
               <CircularProgress
                 value={87}
                 color={compatibilityColor(87)}
-                size="160px"
+                size="200px"
                 thickness="10px"
                 fontWeight="bold"
               >
@@ -393,12 +370,25 @@ const DashboardPage = () => {
               Compare your certifications against market demands
             </Text>
             <VStack spacing={3}>
-              <Select placeholder="Select certification 1" />
-              <Select placeholder="Select certification 2" />
+              <Select placeholder="Select certification 1" width="full">
+                {certificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+              <Select placeholder="Select certification 2" width="full">
+                {certificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
               <Button
                 backgroundColor={buttonColor}
                 color="white"
                 onClick={handleCompare}
+                width="full"
               >
                 Compare
               </Button>
@@ -424,8 +414,9 @@ const DashboardPage = () => {
               <IconButton
                 aria-label="Filter jobs"
                 icon={<FiFilter />}
-                colorScheme="blue" // Sets the icon button color to blue
-                variant="outline" // Gives the button an outlined style
+                colorScheme="blue"
+                variant="outline"
+                onClick={onOpenFilterModal}
               />
             </Flex>
             <Text mb={3}>
@@ -599,6 +590,28 @@ const DashboardPage = () => {
               </Box>
             </Flex>
           </ModalBody>
+        </ModalContent>
+      </Modal>
+      {/* Filter Modal */}
+      <Modal isOpen={isFilterModalOpen} onClose={onCloseFilterModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Filter Jobs</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {/* Add your filter options here */}
+            <VStack spacing={4}>
+              <Checkbox>Option 1</Checkbox>
+              <Checkbox>Option 2</Checkbox>
+              {/* Add more options as needed */}
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={onCloseFilterModal}>
+              Close
+            </Button>
+            <Button variant="ghost">Apply Filters</Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>

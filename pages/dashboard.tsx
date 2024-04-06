@@ -92,35 +92,10 @@ const DashboardPage = () => {
     return `hsl(${hue}, 100%, 50%)`;
   };
 
-  const certificationOptions = [
-    { label: "Project Management Professional", value: "pmp" },
-    { label: "Certified Associate in Project Management", value: "capm" },
-    // ... other options
-  ];
-
   const measurements = [
     { label: "Measurement 1", value: 70 },
     { label: "Measurement 2", value: 40 },
     { label: "Measurement 3", value: 80 },
-  ];
-
-  const tableDataset = [
-    { company: "NCS - Intern", compatibility: 70, skills: "C++, React" },
-    {
-      company: "SIA - Project Manager",
-      compatibility: 40,
-      skills: "Scrum, management",
-    },
-    {
-      company: "Google - Junior Software Engineer",
-      compatibility: 90,
-      skills: "NextJS, MongoDB",
-    },
-    {
-      company: "Facebook - HR",
-      compatibility: 60,
-      skills: "Recruitment, Administration",
-    },
   ];
 
   const skills = [
@@ -160,20 +135,31 @@ const DashboardPage = () => {
     setResumeUploaded(true);
   };
 
-  const handleSelectCertification = (
-    certificationTitle: any,
-    setCertification: any
-  ) => {
-    const selectedCertification = certifications.find(
-      (cert) => cert.certificate_title === certificationTitle
+  const handleSelectCertification = (value: any, setCertification: any) => {
+    // Find the certification object based on the title selected
+    const selectedCert = certifications.find(
+      (cert) => cert.certificate_title === value
     );
-    setCertification(selectedCertification);
+    // Set the state with the selected certification object
+    setCertification(selectedCert);
   };
 
+  // This function is triggered when the "Compare" button is clicked
   const handleCompare = () => {
-    // Here you would usually fetch the data for the selected certifications
-    console.log("Comparing", certification1, "vs", certification2);
-    onOpen();
+    // Check that both certifications have been selected
+    if (certification1 && certification2) {
+      console.log(
+        "Comparing",
+        certification1.certificate_title,
+        "vs",
+        certification2.certificate_title
+      );
+      onOpen(); // This should open the modal
+    } else {
+      console.log("Please select two certifications to compare");
+      // Handle the case where one or both certifications haven't been selected
+      // You might want to show an error message or alert to the user
+    }
   };
 
   const ResumeCard = () => {
@@ -200,12 +186,6 @@ const DashboardPage = () => {
       }
     };
 
-    const triggerFileInput = () => {
-      if (fileInputRef.current) {
-        fileInputRef.current.click();
-      }
-    };
-
     const LabelBox = chakra(Box, {
       shouldForwardProp: (prop) => !["htmlFor"].includes(prop),
     });
@@ -225,7 +205,7 @@ const DashboardPage = () => {
         <GradientText mb={2} fontSize="xl">
           Resume
         </GradientText>
-        <PDFReader file={uploadedFile} />
+        {/* <PDFReader file={uploadedFile} /> */}
         <Text mb={3}>Upload your resume</Text>
         {!resumeUploaded ? (
           <>
@@ -260,14 +240,6 @@ const DashboardPage = () => {
                 accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               />
             </LabelBox>
-            <Button
-              mt={4}
-              backgroundColor={buttonColor}
-              color="white"
-              onClick={triggerFileInput}
-            >
-              Upload
-            </Button>
           </>
         ) : (
           <Flex
@@ -413,7 +385,7 @@ const DashboardPage = () => {
 
   return (
     <Box p={5}>
-      <Flex justifyContent="flex-start" alignItems="center" mb={10}>
+      <Flex justifyContent="flex-start" alignItems="center" mb={4}>
         <Image src="/logo.png" alt="Logo" boxSize="50px" mr={2} />
         <GradientText fontSize="2xl">JBMX</GradientText>
         <Button
@@ -447,14 +419,26 @@ const DashboardPage = () => {
               Compare your certifications against market demands
             </Text>
             <VStack spacing={3}>
-              <Select placeholder="Select certification 1" width="full">
+              <Select
+                placeholder="Select certification 1"
+                width="full"
+                onChange={(e) =>
+                  handleSelectCertification(e.target.value, setCertification1)
+                }
+              >
                 {certifications.map((certification, index) => (
                   <option key={index} value={certification.certificate_title}>
                     {certification.certificate_title}
                   </option>
                 ))}
               </Select>
-              <Select placeholder="Select certification 2" width="full">
+              <Select
+                placeholder="Select certification 2"
+                width="full"
+                onChange={(e) =>
+                  handleSelectCertification(e.target.value, setCertification2)
+                }
+              >
                 {certifications.map((certification, index) => (
                   <option key={index} value={certification.certificate_title}>
                     {certification.certificate_title}
@@ -488,13 +472,13 @@ const DashboardPage = () => {
               <GradientText mb={2} fontSize="xl">
                 Job Qualification Scale
               </GradientText>
-              <IconButton
+              {/* <IconButton
                 aria-label="Filter jobs"
                 icon={<FiFilter />}
                 colorScheme="blue"
                 variant="outline"
                 onClick={onOpenFilterModal}
-              />
+              /> */}
             </Flex>
             <Text mb={3}>
               {resumeUploaded
@@ -650,15 +634,13 @@ const DashboardPage = () => {
                 ))}
               </Select>
             </Grid>
-            <Button
-              backgroundColor={buttonColor}
-              color="white"
-              width="full"
-              onClick={handleCompare} // Ensure you have a function to handle comparison
+            <Text
+              fontSize="xl"
+              fontWeight="bold"
+              mt={6}
+              mb={2}
+              textAlign="left"
             >
-              Compare
-            </Button>
-            <Text fontSize="xl" fontWeight="bold" mt={6} textAlign="left">
               Summary
             </Text>
             <TableContainer>
@@ -666,64 +648,71 @@ const DashboardPage = () => {
                 variant="simple"
                 size="sm"
                 style={{ tableLayout: "fixed" }}
+                marginBottom={4}
               >
                 <Thead>
                   <Tr>
-                    <Th isNumeric>Certification 1</Th>
-                    <Th isNumeric>Certification 2</Th>
+                    <Th
+                      textAlign="center"
+                      whiteSpace="normal"
+                      wordBreak="break-word"
+                    >
+                      {certification1?.certificate_title || "Certification 1"}
+                    </Th>
+                    <Th
+                      textAlign="center"
+                      whiteSpace="normal"
+                      wordBreak="break-word"
+                    >
+                      {certification2?.certificate_title || "Certification 2"}
+                    </Th>
                   </Tr>
                 </Thead>
                 <Tbody>
                   <Tr>
-                    <Td>
-                      Certification Demand:{" "}
-                      {certification1?.certification_demand || "N/A"}
+                    <Td whiteSpace="normal" wordBreak="break-word">
+                      <Text textAlign="center" noOfLines={[1, 2, 3]}>
+                        Certification Demand:{" "}
+                        {certification1?.certification_demand || "N/A"}
+                      </Text>
                     </Td>
-                    <Td>
-                      Certification Demand:{" "}
-                      {certification2?.certification_demand || "N/A"}
+                    <Td whiteSpace="normal" wordBreak="break-word">
+                      <Text textAlign="center" noOfLines={[1, 2, 3]}>
+                        Certification Demand:{" "}
+                        {certification2?.certification_demand || "N/A"}
+                      </Text>
                     </Td>
                   </Tr>
                   <Tr>
-                    <Td>Pay Range: {certification1?.pay_range || "N/A"}</Td>
-                    <Td>Pay Range: {certification2?.pay_range || "N/A"}</Td>
+                    <Td whiteSpace="normal" wordBreak="break-word">
+                      <Text textAlign="center" noOfLines={[1, 2, 3]}>
+                        Pay Range: {certification1?.pay_range || "N/A"}
+                      </Text>
+                    </Td>
+                    <Td whiteSpace="normal" wordBreak="break-word">
+                      <Text textAlign="center" noOfLines={[1, 2, 3]}>
+                        Pay Range: {certification2?.pay_range || "N/A"}
+                      </Text>
+                    </Td>
                   </Tr>
                   <Tr>
-                    <Td>
-                      Top 3 Job Titles:{" "}
-                      {certification1?.top_3_job_titles.join(", ") || "N/A"}
+                    <Td whiteSpace="normal" wordBreak="break-word">
+                      <Text textAlign="center" noOfLines={[2, 3, 4]}>
+                        Top 3 Job Titles:{" "}
+                        {certification1?.top_3_job_titles.join(", ") || "N/A"}
+                      </Text>
                     </Td>
-                    <Td>
-                      Top 3 Job Titles:{" "}
-                      {certification2?.top_3_job_titles.join(", ") || "N/A"}
+                    <Td whiteSpace="normal" wordBreak="break-word">
+                      <Text textAlign="center" noOfLines={[2, 3, 4]}>
+                        Top 3 Job Titles:{" "}
+                        {certification2?.top_3_job_titles.join(", ") || "N/A"}
+                      </Text>
                     </Td>
                   </Tr>
                 </Tbody>
               </Table>
             </TableContainer>
           </ModalBody>
-        </ModalContent>
-      </Modal>
-      {/* Filter Modal */}
-      <Modal isOpen={isFilterModalOpen} onClose={onCloseFilterModal}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Filter Jobs</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {/* Add your filter options here */}
-            <VStack spacing={4}>
-              <Checkbox>Option 1</Checkbox>
-              <Checkbox>Option 2</Checkbox>
-              {/* Add more options as needed */}
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onCloseFilterModal}>
-              Close
-            </Button>
-            <Button variant="ghost">Apply Filters</Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>

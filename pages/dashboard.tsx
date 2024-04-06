@@ -66,18 +66,18 @@ const DashboardPage = () => {
     setResumeUploaded(true);
   };
 
-  useEffect(() => {
-  fetch('/api/data')
-    .then(response => response.json())
-    .then(data => {
-      // Do something with the data
-      console.log(data);
-    })
-    .catch(error => {
-      // Handle any errors here
-      console.error('Error fetching data: ', error);
-    });
-}, []);
+//   useEffect(() => {
+//   fetch('/api/data')
+//     .then(response => response.json())
+//     .then(data => {
+//       // Do something with the data
+//       console.log(data);
+//     })
+//     .catch(error => {
+//       // Handle any errors here
+//       console.error('Error fetching data: ', error);
+//     });
+// }, []);
 
 
   return (

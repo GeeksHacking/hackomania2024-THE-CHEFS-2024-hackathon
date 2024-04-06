@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   VStack,
@@ -254,6 +254,20 @@ const DashboardPage = () => {
     // For now, we'll just set the state to true
     setResumeUploaded(true);
   };
+
+//   useEffect(() => {
+//   fetch('/api/data')
+//     .then(response => response.json())
+//     .then(data => {
+//       // Do something with the data
+//       console.log(data);
+//     })
+//     .catch(error => {
+//       // Handle any errors here
+//       console.error('Error fetching data: ', error);
+//     });
+// }, []);
+
 
   return (
     <Box p={5}>

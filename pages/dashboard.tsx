@@ -330,15 +330,7 @@ const DashboardPage = () => {
     <Box p={5}>
       <Flex justifyContent="flex-start" alignItems="center" mb={4}>
         <Image src="/logo.png" alt="Logo" boxSize="50px" mr={2} />
-        <GradientText fontSize="2xl">JBMX</GradientText>
-        <Button
-          backgroundColor={buttonColor}
-          color="white"
-          onClick={handleUploadResume}
-          ml={4}
-        >
-          Toggle Resume Upload
-        </Button>
+        <GradientText fontSize="2xl">JobSense</GradientText>
       </Flex>
       {/* Updated Grid layout */}
       <Grid templateColumns={{ md: "1fr 2fr" }} gap={6}>
@@ -467,7 +459,7 @@ const DashboardPage = () => {
                       </Td>
                       <Td whiteSpace="normal" wordBreak="break-word">
                         <Text textAlign="left" noOfLines={[1, 2, 4]}>
-                          {job.skills_required|| "N/A"}
+                          {job.skills_required || "N/A"}
                         </Text>
                       </Td>
                     </Tr>

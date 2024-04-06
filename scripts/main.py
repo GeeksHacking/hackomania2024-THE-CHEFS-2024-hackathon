@@ -1,7 +1,8 @@
+from ast import literal_eval
+import google.generativeai as genai
 import psycopg2
 import os
 import click
-import requests
 import pandas as pd
 from dotenv import load_dotenv
 from job import Job
@@ -10,16 +11,46 @@ from job import Job
 load_dotenv()
 
 CONNECTION = os.getenv("CONNECTION")
-API_URL = os.getenv("API_URL")
-headers = {"Authorization": "Bearer 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"}
+API_TOKEN = os.getenv("API_TOKEN")
 
 
 def query(payload):
-    if API_URL is None:
-        raise Exception("Env file not found")
+    genai.configure(api_key=API_TOKEN, transport="rest")
 
-    response = requests.post(API_URL, headers=headers, json=payload)
-    return response.json()
+    safety_settings = [
+        {
+            "category": "HARM_CATEGORY_DANGEROUS",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE",
+        },
+    ]
+
+    model = genai.GenerativeModel("gemini-pro", safety_settings=safety_settings)
+
+    tokens = model.count_tokens(payload).total_tokens
+
+    if tokens > 20000:
+        print("Tokens in prompt is " + str(tokens) + ", which is more than allowed.")
+        return
+
+    response = model.generate_content(payload)
+
+    return response.text
 
 
 def save_database(rows: list[Job]):
@@ -32,52 +63,41 @@ def save_database(rows: list[Job]):
         # use the cursor to interact with your database
         # cursor.execute("SELECT * FROM table")
         for row in rows:
-            try:
-                cursor.execute(
-                    """
-                    INSERT INTO bigdata_job (site, job_url, title, company, location, 
-                    job_type, date_posted, interval, min_amount, max_amount, currency, 
-                    is_remote, emails, description, academic_qualification, 
-                    professional_qualification, years_of_experience, skills_required) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s);
-                    """,
-                    (
-                        row.site,
-                        row.job_url,
-                        row.title,
-                        row.company,
-                        row.location,
-                        row.job_type,
-                        row.job_type,
-                        row.date_posted,
-                        row.interval,
-                        row.min_amount,
-                        row.max_amount,
-                        row.currency,
-                        row.is_remote,
-                        row.emails,
-                        row.description,
-                        row.academic_qualification,
-                        row.professional_qualification,
-                        row.years_of_experience,
-                        row.skills_required,
-                    ),
-                )
-            except (Exception, psycopg2.Error) as error:
-                print(error)
+            cursor.execute(
+                """
+                INSERT INTO bigdata_job (site, job_url, title, company, location, 
+                job_type, date_posted, interval, min_amount, max_amount, currency, 
+                is_remote, emails, description, years_of_experience, 
+                skills_required) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+                %s, %s, %s, %s, %s, %s);
+                """,
+                (
+                    row.site,
+                    row.job_url,
+                    row.title,
+                    row.company,
+                    row.location,
+                    row.job_type,
+                    row.date_posted,
+                    row.interval,
+                    row.min_amount,
+                    row.max_amount,
+                    row.currency,
+                    row.is_remote,
+                    row.emails,
+                    row.description,
+                    row.years_of_experience,
+                    row.skills_required,
+                ),
+            )
         conn.commit()
-        conn.close()
-    exit()
 
 
 def parse(file):
     df = pd.read_csv(file)
 
-    count = 0
+    jobs = []
     for _, row in df.iterrows():
-        if count == 2:
-            break
         job = Job(
             row["site"],
             row["job_url"],
@@ -91,51 +111,55 @@ def parse(file):
             row["max_amount"],
             row["currency"],
             row["is_remote"],
-            row["emails"],
+            [row["emails"]],
             row["description"],
-            "",
-            "",
             0,
             "",
         )
 
         keywords = [
-            "academic_qualification",
-            "professional_qualification",
             "years_of_experience",
             "skills_required",
         ]
 
-        jobs = []
         for keyword in keywords:
+            # prompt = """
+            # You are a program that processes and extracts required information from a
+            # job posting based on a keyword which could be academic_qualifications,
+            # professional_qualifications, years_of_experience, and skills_required.
+            # When provided with the years_of_experience keyword, you are to only output
+            # an integer, if nothing is found, you are to output 0.
+            # For other keywords, you are to only provide the exact phrasing from the
+            # job posting if found, otherwise, output the word "None".
+            # Hence, find the {} from the following job posting: {}
+            # """.format(
+            #     keyword, job.description
+            # )
+
             prompt = """
-            Pretend that you are a candidate searching for a job.
-            Extract the {} from this job posting:
+            Extract the {} from the job opening as a Python variable called {}. If the
+            extracted values contain multiple items, store values in a list. If no
+            value is found, respond with the word, None.
             """.format(
-                keyword
+                keyword, job.description
             )
 
-            print("========================================")
-            print("Job description: " + job.description)
-            print("Current keyword: " + keyword)
+            output = query(prompt)
 
-            output = query(
-                {
-                    "inputs": prompt + job.description,
-                }
-            )
+            if output is not None:
+                job[keyword] = literal_eval(output)
+            # print(json.dumps(job.__dict__, indent=4))
 
-            job[keyword] = output[0]["generated_text"]
-
-            print(job[keyword])
         jobs.append(job)
-        count += 1
-    # save_database(jobs)
+
+    save_database(jobs)
 
 
 @click.command()
 @click.argument("file", type=click.Path(exists=True))
 def main(file):
+    if not CONNECTION or not API_TOKEN:
+        raise Exception("Required variables not found.")
     parse(file)
 
     exit(0)

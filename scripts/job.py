@@ -22,8 +22,6 @@ class Job:
         is_remote,
         emails,
         description,
-        academic_qualification,
-        professional_qualification,
         years_of_experience,
         skills_required,
     ) -> None:
@@ -41,8 +39,6 @@ class Job:
         self.is_remote = is_remote
         self.emails = emails
         self.description = description
-        self.academic_qualification = academic_qualification
-        self.professional_qualification = professional_qualification
         self.years_of_experience = years_of_experience
         self.skills_required = skills_required
 

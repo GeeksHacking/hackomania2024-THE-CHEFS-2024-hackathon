@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Box,
   VStack,
@@ -61,6 +61,25 @@ const DashboardPage = () => {
     { label: "Measurement 1", value: 70 },
     { label: "Measurement 2", value: 40 },
     { label: "Measurement 3", value: 80 },
+  ];
+
+  const tableDataset = [
+    { company: "NCS - Intern", compatibility: 70, skills: "C++, React" },
+    {
+      company: "SIA - Project Manager",
+      compatibility: 40,
+      skills: "Scrum, management",
+    },
+    {
+      company: "Google - Junior Software Engineer",
+      compatibility: 90,
+      skills: "NextJS, MongoDB",
+    },
+    {
+      company: "Facebook - HR",
+      compatibility: 60,
+      skills: "Recruitment, Administration",
+    },
   ];
 
   const skills = [
@@ -146,7 +165,7 @@ const DashboardPage = () => {
           <VStack align="stretch" pl={{ md: 6 }}>
             {measurements.map((m, index) => (
               <Box key={index} width="100%">
-                <Text fontSize="sm" fontWeight="bold">
+                <Text fontSize="md" fontWeight="bold">
                   {m.label}
                 </Text>
                 <Progress
@@ -169,7 +188,7 @@ const DashboardPage = () => {
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
       <ModalContent
-        p={5}
+        p={2}
         bg={bgColor}
         boxShadow="md"
         borderRadius="lg"
@@ -178,6 +197,9 @@ const DashboardPage = () => {
       >
         <ModalHeader>
           <GradientText>Resume</GradientText>
+          <Heading size="md" mt={2} mb={4}>
+            Your Resume Score
+          </Heading>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -190,8 +212,8 @@ const DashboardPage = () => {
               <CircularProgress
                 value={87}
                 color={compatibilityColor(87)}
-                size="120px"
-                thickness="12px"
+                size="200px"
+                thickness="10px"
                 fontWeight="bold"
               >
                 <CircularProgressLabel color={compatibilityColor(87)}>
@@ -202,12 +224,12 @@ const DashboardPage = () => {
             <VStack align="start" pl={{ md: 6 }}>
               {measurements.map((m, index) => (
                 <Box key={index} width="100%">
-                  <Text fontSize="sm" fontWeight="bold">
+                  <Text fontSize="lg" fontWeight="bold">
                     {m.label}
                   </Text>
                   <Progress
                     value={m.value}
-                    size="sm"
+                    size="md"
                     colorScheme="green"
                     borderRadius="full" // Rounded edges
                     height="4px" // Thinner bar
@@ -305,60 +327,24 @@ const DashboardPage = () => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {/* These rows can be dynamically generated based on your data */}
-                  <Tr>
-                    <Td>NCS - Intern</Td>
-                    <Td>
-                      {resumeUploaded ? (
-                        <Text color={compatibilityColor(70)} fontWeight="bold">
-                          70%
-                        </Text>
-                      ) : (
-                        "Resume Required"
-                      )}
-                    </Td>
-                    <Td>C++, React</Td>
-                  </Tr>
-                  <Tr>
-                    <Td>SIA - Project Manager</Td>
-                    <Td>
-                      {resumeUploaded ? (
-                        <Text color={compatibilityColor(40)} fontWeight="bold">
-                          40%
-                        </Text>
-                      ) : (
-                        "Resume Required"
-                      )}
-                    </Td>
-                    <Td>Scrum, management</Td>
-                  </Tr>
-                  <Tr>
-                    <Td>Google - Junior Software Engineer</Td>
-                    <Td>
-                      {resumeUploaded ? (
-                        <Text color={compatibilityColor(90)} fontWeight="bold">
-                          90%
-                        </Text>
-                      ) : (
-                        "Resume Required"
-                      )}
-                    </Td>
-                    <Td>NextJS, MongoDB</Td>
-                  </Tr>
-                  <Tr>
-                    <Td>Facebook - HR</Td>
-                    <Td>
-                      {resumeUploaded ? (
-                        <Text color={compatibilityColor(60)} fontWeight="bold">
-                          60%
-                        </Text>
-                      ) : (
-                        "Resume Required"
-                      )}
-                    </Td>
-                    <Td>Recruitment, Administration</Td>
-                  </Tr>
-                  {/* Add more rows as needed */}
+                  {tableDataset.map((data, index) => (
+                    <Tr key={index}>
+                      <Td>{data.company}</Td>
+                      <Td>
+                        {resumeUploaded ? (
+                          <Text
+                            color={compatibilityColor(data.compatibility)}
+                            fontWeight="bold"
+                          >
+                            {data.compatibility}%
+                          </Text>
+                        ) : (
+                          "Resume Required"
+                        )}
+                      </Td>
+                      <Td>{data.skills}</Td>
+                    </Tr>
+                  ))}
                 </Tbody>
               </Table>
             </TableContainer>

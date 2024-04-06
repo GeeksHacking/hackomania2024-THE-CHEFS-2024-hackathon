@@ -32,12 +32,12 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
-  Stack,
 } from "@chakra-ui/react";
 import { FiFilter } from "react-icons/fi";
 import { FiUpload } from "react-icons/fi";
 import { MdLock } from "react-icons/md";
 import SkillCard from "../components/SkillCard";
+import PDFReader from "../components/PDFReader";
 
 const DashboardPage = () => {
   const bgColor = useColorModeValue("gray.50", "gray.700");
@@ -54,6 +54,7 @@ const DashboardPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [certification1, setCertification1] = useState("");
   const [certification2, setCertification2] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const {
     isOpen: isResumeModalOpen,
     onOpen: onOpenResumeModal,
@@ -144,6 +145,15 @@ const DashboardPage = () => {
       ],
       outcome: "+18% Job Compatibility",
     },
+    {
+      title: "Project Management",
+      description: "Why Learn it?",
+      points: [
+        "Essential skill for leading teams and delivering projects",
+        "In-demand skill across various industries",
+      ],
+      outcome: "+18% Job Compatibility",
+    },
     // Add more skills as needed
   ];
 
@@ -166,11 +176,12 @@ const DashboardPage = () => {
     // function to call when file is dropped or selected
     const onFileDrop = (event: any) => {
       const files = event.target.files || event.dataTransfer.files;
-      // Handle file upload...
-      setResumeUploaded(true);
-      console.log(files);
+      if (files.length > 0 && files[0].type === "application/pdf") {
+        setUploadedFile(files[0]);
+        setResumeUploaded(true);
+        console.log(files);
+      }
     };
-
     const LabelBox = chakra(Box, {
       shouldForwardProp: (prop) => !["htmlFor"].includes(prop),
     });
@@ -483,17 +494,26 @@ const DashboardPage = () => {
                   <Text mb={3} fontWeight="semibold">
                     Suggested Skills to Learn:
                   </Text>
-                  <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                  <Flex
+                    overflowX="auto"
+                    py={2} // Add padding on the y-axis if needed
+                  >
                     {skills.map((skill, index) => (
-                      <SkillCard
+                      <Box
                         key={index}
-                        title={skill.title}
-                        description={skill.description}
-                        points={skill.points}
-                        outcome={skill.outcome}
-                      />
+                        minWidth="220px" // Give a minimum width to your SkillCard components
+                        flex="0 0 auto" // This makes sure that the box doesn't shrink
+                        mx={2} // Add margin on the x-axis for spacing between items
+                      >
+                        <SkillCard
+                          title={skill.title}
+                          description={skill.description}
+                          points={skill.points}
+                          outcome={skill.outcome}
+                        />
+                      </Box>
                     ))}
-                  </SimpleGrid>
+                  </Flex>
                 </>
               ) : (
                 <Flex

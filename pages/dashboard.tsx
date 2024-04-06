@@ -225,6 +225,7 @@ const DashboardPage = () => {
         <GradientText mb={2} fontSize="xl">
           Resume
         </GradientText>
+        <PDFReader file={uploadedFile} />
         <Text mb={3}>Upload your resume</Text>
         {!resumeUploaded ? (
           <>
@@ -661,38 +662,38 @@ const DashboardPage = () => {
               Summary
             </Text>
             <TableContainer>
-              <Table variant="simple" size="sm">
+              <Table
+                variant="simple"
+                size="sm"
+                style={{ tableLayout: "fixed" }}
+              >
                 <Thead>
                   <Tr>
-                    <Th>Certification 1</Th>
-                    <Th>Certification 2</Th>
+                    <Th isNumeric>Certification 1</Th>
+                    <Th isNumeric>Certification 2</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
                   <Tr>
-                    <Td textAlign="center">
+                    <Td>
                       Certification Demand:{" "}
                       {certification1?.certification_demand || "N/A"}
                     </Td>
-                    <Td textAlign="center">
+                    <Td>
                       Certification Demand:{" "}
                       {certification2?.certification_demand || "N/A"}
                     </Td>
                   </Tr>
                   <Tr>
-                    <Td textAlign="center">
-                      Pay Range: {certification1?.pay_range || "N/A"}
-                    </Td>
-                    <Td textAlign="center">
-                      Pay Range: {certification2?.pay_range || "N/A"}
-                    </Td>
+                    <Td>Pay Range: {certification1?.pay_range || "N/A"}</Td>
+                    <Td>Pay Range: {certification2?.pay_range || "N/A"}</Td>
                   </Tr>
                   <Tr>
-                    <Td textAlign="center">
+                    <Td>
                       Top 3 Job Titles:{" "}
                       {certification1?.top_3_job_titles.join(", ") || "N/A"}
                     </Td>
-                    <Td textAlign="center">
+                    <Td>
                       Top 3 Job Titles:{" "}
                       {certification2?.top_3_job_titles.join(", ") || "N/A"}
                     </Td>

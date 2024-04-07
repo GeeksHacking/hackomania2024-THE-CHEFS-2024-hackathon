@@ -1,7 +1,19 @@
+# JobSense
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+JobSense is a platform that utilizes big data technologies and artificial intelligence to tackle the problem of rising unemployment due to job market trends.
+The platform provides tailored recommendations to help users to enhance their portfolio and increase their chances of securing employment opportunities.
 
 ## Getting Started
+This section describes a quick way to deploy the project locally for development purposes. 
 
+### Prerequisites
+The project leverages on the following technologies which must be configured beforehand:
+- [Node.js](https://nodejs.org)
+- [Python](https://www.python.org)
+- [TimescaleDB](https://docs.timescale.com)
+- [Gemini](https://ai.google.dev)
+
+### JobSense Web Application
 First, run the development server:
 
 ```bash
@@ -20,17 +32,30 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Learn More
+### Web Scraping and Data Processing
+The Python scripts to scrape and process the data using Gemini are stored in the `scripts/` directory.
 
-To learn more about Next.js, take a look at the following resources:
+First, install the required Python dependencies:
+```bash
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Initialize a Python virtual environment
+python -m venv env
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+# On Linux, activate the virtual environment
+source env/bin/activate
 
-## Deploy on Vercel
+# Dependencies will be installed in the env/ virtual environment instead of system-wide, the latter is usually not recommended.
+pip install -r requirements.txt
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Secondly, run the appropriate script to scrape or process data:
+```bash
+# Run the web scraper to scrape various job sites into job.csv
+python scraper.py
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+# Create .env file based on .env.example and populate required values
+cp .env.example .env
+
+# Process scraped data
+python main.py path/to/jobs.csv
+```

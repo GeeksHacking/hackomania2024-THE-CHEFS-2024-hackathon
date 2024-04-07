@@ -22,7 +22,7 @@ const SkillCard: React.FC<SkillCardProps> = ({
       p={5}
       borderWidth="1px"
       borderColor="gray.200"
-      width="100%"
+      width="400px"
     >
       <VStack align="stretch" spacing={3}>
         <Heading size="md" mb={3}>

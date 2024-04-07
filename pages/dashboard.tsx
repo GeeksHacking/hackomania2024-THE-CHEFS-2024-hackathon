@@ -88,31 +88,28 @@ const DashboardPage = () => {
 
   const skills = [
     {
-      title: "Advanced Excel",
+      title: `${skillsToLearn1.split('\n')[0]}`,
       description: "Why Learn it?",
       points: [
-        "Required for data analysis roles",
-        "35% of job postings mention it",
+        `${skillsToLearn1.split('\n').slice(1).join('\n')}`,
       ],
-      outcome: "+15% Job Compatibility",
+      
     },
     {
-      title: "Python Programming",
+      title: `${skillsToLearn2.split('\n')[0]}`,
       description: "Why Learn it?",
       points: [
-        "Widely used in web development, data analysis, and AI",
-        "High demand for Python developers",
+        `${skillsToLearn2.split('\n').slice(1).join('\n')}`,
       ],
-      outcome: "+20% Job Compatibility",
+      outcome: "",
     },
     {
-      title: "Project Management",
+      title: `${skillsToLearn3.split('\n')[0]}`,
       description: "Why Learn it?",
       points: [
-        "Essential skill for leading teams and delivering projects",
-        "In-demand skill across various industries",
+        `${skillsToLearn3.split('\n').slice(1).join('\n')}`,
       ],
-      outcome: "+18% Job Compatibility",
+      outcome: "",
     },
     // Add more skills as needed
   ];
@@ -549,8 +546,7 @@ const skillsToLearn = async (resumeText: string, previousResponse: any) => {
                         <SkillCard
                           title={skill.title}
                           description={skill.description}
-                          points={skill.points}
-                          outcome={skill.outcome}
+                          points={skill.points} outcome={""}                        
                         />
                       </Box>
                     ))}

@@ -60,6 +60,9 @@ const DashboardPage = () => {
       fontWeight: "bold",
     },
   });
+  const [skillsToLearn1, setSkillsToLearn1] = useState<any>("");
+  const [skillsToLearn2, setSkillsToLearn2] = useState<any>("");
+  const [skillsToLearn3, setSkillsToLearn3] = useState<any>("");
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -120,7 +123,7 @@ const DashboardPage = () => {
     setResumeUploaded(true);
   };
 
-  const PDFExtractor = ({ file }: { file: File | null }) => {
+const PDFExtractor = ({ file }: { file: File | null }) => {
     if (!file) {
       console.error("No file provided.");
       return;
@@ -148,11 +151,16 @@ const DashboardPage = () => {
               .join(" ");
             extractedText += pageText + " ";
           }
-          console.log("Extracted Text:" + extractedText);
-          // Assuming `setText` and `analyzeResume` are provided elsewhere
-          // setText(extractedText);
-          // analyzeResume(extractedText);
-          skillsToLearn(extractedText);
+          console.log("Extracted Text: " + extractedText);
+
+          // Correctly handle the promise returned by skillsToLearn
+          const skillsData = await skillsToLearn(extractedText, "");
+          const skillsData1 = await skillsToLearn(extractedText, skillsData);
+          const skillsData2 = await skillsToLearn(extractedText, skillsData1);
+          setSkillsToLearn1(skillsData);
+          setSkillsToLearn2(skillsData1);
+          setSkillsToLearn3(skillsData2);
+          
         } catch (error) {
           console.error("Error while extracting text from PDF:", error);
         }
@@ -160,7 +168,9 @@ const DashboardPage = () => {
     };
 
     reader.readAsArrayBuffer(file);
-  };
+};
+
+
 
   const handleSelectCertification = (value: any, setCertification: any) => {
     // Find the certification object based on the title selected
@@ -189,21 +199,21 @@ const DashboardPage = () => {
     }
   };
 
-const skillsToLearn = async (resumeText: string) => {
+const skillsToLearn = async (resumeText: string, previousResponse: any) => {
     try {
         const response = await fetch("/api/skills-to-learn", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ resumeText }), // Updated field name to match backend
+            body: JSON.stringify({ resumeText,previousResponse }), // Updated field name to match backend
         });
 
         if (!response.ok) {
             throw new Error("Failed to fetch skills to learn");
         }
 
-        const data = await response.json();
+        const data = await response.text();
         console.log("Skills to learn:", data);
         return data; // Return the data if needed for further processing
     } catch (error) {

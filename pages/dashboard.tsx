@@ -152,6 +152,7 @@ const DashboardPage = () => {
           // Assuming `setText` and `analyzeResume` are provided elsewhere
           // setText(extractedText);
           analyzeResume(extractedText);
+          skillsToLearn(extractedText);
         } catch (error) {
           console.error("Error while extracting text from PDF:", error);
         }
@@ -187,6 +188,30 @@ const DashboardPage = () => {
       // You might want to show an error message or alert to the user
     }
   };
+
+  const skillsToLearn = async (resumeText: string) => {
+    try {
+      const response = await fetch("/api/skills-to-learn", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ resumeText }), // Updated field name to match backend
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch skills to learn");
+      }
+
+      const data = await response.json();
+      console.log("Skills to learn:", data);
+      return data; // Return the data if needed for further processing
+    } catch (error) {
+      console.error("Error fetching skills to learn:", error);
+      // Handle the error gracefully, e.g., display an error message to the user
+    }
+  }
+
 
   const analyzeResume = async (resumeText: string) => {
 
@@ -360,15 +385,7 @@ const DashboardPage = () => {
     <Box p={5}>
       <Flex justifyContent="flex-start" alignItems="center" mb={4}>
         <Image src="/logo.png" alt="Logo" boxSize="50px" mr={2} />
-        <GradientText fontSize="2xl">JBMX</GradientText>
-        <Button
-          backgroundColor={buttonColor}
-          color="white"
-          onClick={handleUploadResume}
-          ml={4}
-        >
-          Toggle Resume Upload
-        </Button>
+        <GradientText fontSize="2xl">JobSense</GradientText>
       </Flex>
       {/* Updated Grid layout */}
       <Grid templateColumns={{ md: "1fr 2fr" }} gap={6}>
@@ -384,6 +401,7 @@ const DashboardPage = () => {
             borderRadius="lg"
             borderWidth="1px"
             borderColor={borderColor}
+            flex={1}
           >
             <GradientText mb={2} fontSize="xl">
               Certification Insight

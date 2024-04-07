@@ -1,5 +1,4 @@
 # JobSense
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 JobSense is a platform that utilizes big data technologies and artificial intelligence to tackle the problem of rising unemployment due to job market trends.
 The platform provides tailored recommendations to help users to enhance their portfolio and increase their chances of securing employment opportunities.
 

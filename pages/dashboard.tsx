@@ -37,13 +37,6 @@ import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf";
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import "pdfjs-dist/legacy/build/pdf.worker";
 
-// interface Job {
-//   company: string;
-//   compatibility?: number;
-//   skills_required: string;
-//   title: string;
-// }
-
 interface Certification {
   certificate_title: string;
   certification_demand: string;
@@ -62,7 +55,11 @@ const DashboardPage = () => {
       fontWeight: "bold",
     },
   });
+  const [skillsToLearn1, setSkillsToLearn1] = useState<any>("");
+  const [skillsToLearn2, setSkillsToLearn2] = useState<any>("");
+  const [skillsToLearn3, setSkillsToLearn3] = useState<any>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingSkills, setLoadingSkills] = useState<boolean>(false);
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [jobs, setJobs] = useState<any[]>([]);
@@ -88,31 +85,21 @@ const DashboardPage = () => {
 
   const skills = [
     {
-      title: "Advanced Excel",
+      title: `${skillsToLearn1.split("\n")[0]}`,
       description: "Why Learn it?",
-      points: [
-        "Required for data analysis roles",
-        "35% of job postings mention it",
-      ],
-      outcome: "+15% Job Compatibility",
+      points: [`${skillsToLearn1.split("\n").slice(1).join("\n")}`],
     },
     {
-      title: "Python Programming",
+      title: `${skillsToLearn2.split("\n")[0]}`,
       description: "Why Learn it?",
-      points: [
-        "Widely used in web development, data analysis, and AI",
-        "High demand for Python developers",
-      ],
-      outcome: "+20% Job Compatibility",
+      points: [`${skillsToLearn2.split("\n").slice(1).join("\n")}`],
+      outcome: "",
     },
     {
-      title: "Project Management",
+      title: `${skillsToLearn3.split("\n")[0]}`,
       description: "Why Learn it?",
-      points: [
-        "Essential skill for leading teams and delivering projects",
-        "In-demand skill across various industries",
-      ],
-      outcome: "+18% Job Compatibility",
+      points: [`${skillsToLearn3.split("\n").slice(1).join("\n")}`],
+      outcome: "",
     },
     // Add more skills as needed
   ];
@@ -124,6 +111,7 @@ const DashboardPage = () => {
   };
 
   const PDFExtractor = ({ file }: { file: File | null }) => {
+    setLoadingSkills(true);
     if (!file) {
       console.error("No file provided.");
       return;
@@ -155,7 +143,14 @@ const DashboardPage = () => {
           // Assuming `setText` and `analyzeResume` are provided elsewhere
           // setText(extractedText);
           analyzeResume(extractedText);
-          skillsToLearn(extractedText);
+          skillsToLearn(extractedText, "");
+          const skillsData = await skillsToLearn(extractedText, "");
+          const skillsData1 = await skillsToLearn(extractedText, skillsData);
+          const skillsData2 = await skillsToLearn(extractedText, skillsData1);
+          setSkillsToLearn1(skillsData);
+          setSkillsToLearn2(skillsData1);
+          setSkillsToLearn3(skillsData2);
+          setLoadingSkills(false);
         } catch (error) {
           console.error("Error while extracting text from PDF:", error);
         }
@@ -192,21 +187,21 @@ const DashboardPage = () => {
     }
   };
 
-  const skillsToLearn = async (resumeText: string) => {
+  const skillsToLearn = async (resumeText: string, previousResponse: any) => {
     try {
       const response = await fetch("/api/skills-to-learn", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ resumeText }), // Updated field name to match backend
+        body: JSON.stringify({ resumeText, previousResponse }), // Updated field name to match backend
       });
 
       if (!response.ok) {
         throw new Error("Failed to fetch skills to learn");
       }
 
-      const data = await response.json();
+      const data = await response.text();
       console.log("Skills to learn:", data);
       return data; // Return the data if needed for further processing
     } catch (error) {
@@ -214,51 +209,6 @@ const DashboardPage = () => {
       // Handle the error gracefully, e.g., display an error message to the user
     }
   };
-
-  // const analyzeResume = async (resumeText: string) => {
-  //   setLoading(true); // Start loading before fetching data
-  //   try {
-  //     const latestRoleResponse = await fetch("/api/latestRole", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ resume: resumeText }),
-  //     });
-  //     const latestRole = await latestRoleResponse.json();
-
-  //     const relatedRolesResponse = await fetch("/api/roles", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ title: latestRole.latestRole }),
-  //     });
-  //     const relatedRoles = await relatedRolesResponse.json();
-
-  //     const analysis = await Promise.all(
-  //       relatedRoles.map(async (role: any) => {
-  //         const response = await fetch("/api/useGemini", {
-  //           method: "POST",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //           },
-  //           body: JSON.stringify({
-  //             resume: resumeText,
-  //             role: role,
-  //           }),
-  //         });
-  //         return response.json();
-  //       })
-  //     );
-
-  //     setJobs(analysis);
-  //   } catch (error) {
-  //     console.error("Error while analyzing resume:", error);
-  //   } finally {
-  //     setLoading(false); // Stop loading regardless of the outcome
-  //   }
-  // };
 
   const analyzeResume = async (resumeText: string) => {
     setLoading(true);
@@ -587,26 +537,34 @@ const DashboardPage = () => {
                 skillset for career growth
               </Text>
               {resumeUploaded ? (
-                <>
-                  <Text mb={3} fontWeight="semibold">
-                    Suggested Skills to Learn:
-                  </Text>
-                  <Flex
-                    overflowX="auto"
-                    py={2} // Add padding on the y-axis if needed
-                  >
-                    {skills.map((skill, index) => (
-                      <Box
-                        key={index}
-                        minWidth="220px" // Give a minimum width to your SkillCard components
-                        flex="0 0 auto" // This makes sure that the box doesn't shrink
-                        mx={2} // Add margin on the x-axis for spacing between items
-                      >
-                        <SkillCard title={skill.title} points={skill.points} />
-                      </Box>
-                    ))}
-                  </Flex>
-                </>
+                loadingSkills ? (
+                  <Center height="100px">
+                    {" "}
+                    {/* Adjust height as needed */}
+                    <Spinner size="lg" />
+                  </Center>
+                ) : (
+                  <>
+                    <Text mb={3} fontWeight="semibold">
+                      Suggested Skills to Learn:
+                    </Text>
+                    <Flex overflowX="auto" py={2}>
+                      {skills.map((skill, index) => (
+                        <Box
+                          key={index}
+                          minWidth="220px"
+                          flex="0 0 auto"
+                          mx={2}
+                        >
+                          <SkillCard
+                            title={skill.title}
+                            points={skill.points}
+                          />
+                        </Box>
+                      ))}
+                    </Flex>
+                  </>
+                )
               ) : (
                 <Flex
                   direction="column"

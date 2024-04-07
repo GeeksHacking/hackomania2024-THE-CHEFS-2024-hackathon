@@ -27,6 +27,8 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Spinner,
+  Center,
 } from "@chakra-ui/react";
 import { FiUpload } from "react-icons/fi";
 import { MdLock } from "react-icons/md";
@@ -35,12 +37,12 @@ import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf";
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import "pdfjs-dist/legacy/build/pdf.worker";
 
-interface Job {
-  company: string;
-  compatibility?: number;
-  skills_required: string;
-  title: string;
-}
+// interface Job {
+//   company: string;
+//   compatibility?: number;
+//   skills_required: string;
+//   title: string;
+// }
 
 interface Certification {
   certificate_title: string;
@@ -60,9 +62,10 @@ const DashboardPage = () => {
       fontWeight: "bold",
     },
   });
+  const [loading, setLoading] = useState<boolean>(false);
   const [resumeUploaded, setResumeUploaded] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [text, setText] = useState("");
   const [certification1, setCertification1] = useState<Certification | null>(
@@ -212,7 +215,53 @@ const DashboardPage = () => {
     }
   };
 
+  // const analyzeResume = async (resumeText: string) => {
+  //   setLoading(true); // Start loading before fetching data
+  //   try {
+  //     const latestRoleResponse = await fetch("/api/latestRole", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ resume: resumeText }),
+  //     });
+  //     const latestRole = await latestRoleResponse.json();
+
+  //     const relatedRolesResponse = await fetch("/api/roles", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ title: latestRole.latestRole }),
+  //     });
+  //     const relatedRoles = await relatedRolesResponse.json();
+
+  //     const analysis = await Promise.all(
+  //       relatedRoles.map(async (role: any) => {
+  //         const response = await fetch("/api/useGemini", {
+  //           method: "POST",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //           },
+  //           body: JSON.stringify({
+  //             resume: resumeText,
+  //             role: role,
+  //           }),
+  //         });
+  //         return response.json();
+  //       })
+  //     );
+
+  //     setJobs(analysis);
+  //   } catch (error) {
+  //     console.error("Error while analyzing resume:", error);
+  //   } finally {
+  //     setLoading(false); // Stop loading regardless of the outcome
+  //   }
+  // };
+
   const analyzeResume = async (resumeText: string) => {
+    setLoading(true);
     // Get latest job from resume
     const latestRole = await fetch("/api/latestRole", {
       method: "POST",
@@ -257,6 +306,8 @@ const DashboardPage = () => {
         console.error("Error analyzing resume:", error);
       }
     }
+    setJobs(analysis);
+    setLoading(false);
   };
 
   const ResumeCard = () => {
@@ -373,7 +424,7 @@ const DashboardPage = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetched data:", data); // Check the structure here
-        setJobs(data); // Assuming data is directly an array of Job objects
+        // setJobs(data); // Assuming data is directly an array of Job objects
       })
       .catch((error) => {
         console.error("Error fetching data: ", error);
@@ -468,60 +519,54 @@ const DashboardPage = () => {
                 ? "Discover how your qualifications measure up to specific job requirements"
                 : "Upload your resume to see how your qualifications measure up to specific job requirements"}
             </Text>
-            <TableContainer maxHeight="200px" overflowY="auto">
-              <Table
-                variant="simple"
-                size="sm"
-                width="full"
-                sx={{ "th, td": { width: "1/3" } }}
-              >
-                <Thead position="sticky" top="0" bg={bgColor} zIndex="sticky">
-                  <Tr>
-                    <Th textAlign="left">Company - Job Title</Th>
-                    <Th textAlign="left">Compatibility</Th>
-                    <Th textAlign="left">Skills Required</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {jobs.map((job, index) => (
-                    <Tr key={index}>
-                      <Td whiteSpace="normal" wordBreak="break-word">
-                        <Text textAlign="left" noOfLines={[1, 2, 3]}>
-                          {job.company} - {job.title}
-                        </Text>
-                      </Td>
-                      {/* <Td whiteSpace="normal" wordBreak="break-word">
-                      <Text textAlign="center" noOfLines={[1, 2, 3]}>
-                        Pay Range: {certification1?.pay_range || "N/A"}
-                      </Text>
-                    </Td> */}
-                      <Td textAlign="left">
-                        {resumeUploaded ? (
+            {loading ? (
+              <Center>
+                <Spinner size="xl" />
+              </Center>
+            ) : (
+              <TableContainer maxHeight="200px" overflowY="auto">
+                <Table
+                  variant="simple"
+                  size="sm"
+                  width="full"
+                  sx={{ "th, td": { width: "1/3" } }}
+                >
+                  <Thead position="sticky" top="0" bg="white" zIndex="sticky">
+                    <Tr>
+                      <Th textAlign="left">Company - Job Title</Th>
+                      <Th textAlign="left">Compatibility</Th>
+                      <Th textAlign="left">Skills Required</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {jobs.map((job, index) => (
+                      <Tr key={index}>
+                        <Td whiteSpace="normal" wordBreak="break-word">
+                          <Text textAlign="left" noOfLines={[1, 2, 3]}>
+                            {job.role.company} - {job.role.title}
+                          </Text>
+                        </Td>
+                        <Td textAlign="left">
                           <Text
-                            color={compatibilityColor(job.compatibility ?? 0)}
+                            color={compatibilityColor(job.compatibility)}
                             fontWeight="bold"
                           >
                             {job.compatibility
                               ? `${job.compatibility}%`
                               : "N/A"}
                           </Text>
-                        ) : (
-                          <Flex align="left" color="gray.500">
-                            <Icon as={MdLock} mr={2} />
-                            <Text>Resume Required</Text>
-                          </Flex>
-                        )}
-                      </Td>
-                      <Td whiteSpace="normal" wordBreak="break-word">
-                        <Text textAlign="left" noOfLines={[1, 2, 4]}>
-                          {job.skills_required || "N/A"}
-                        </Text>
-                      </Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </TableContainer>
+                        </Td>
+                        <Td whiteSpace="normal" wordBreak="break-word">
+                          <Text textAlign="left" noOfLines={[1, 2, 4]}>
+                            {job.role.skills_required.join(", ") || "N/A"}
+                          </Text>
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </TableContainer>
+            )}
           </Box>
           {/* Skills Development Card */}
           <VStack spacing={4} align="stretch" width="full">

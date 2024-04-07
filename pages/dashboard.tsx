@@ -151,7 +151,7 @@ const DashboardPage = () => {
           console.log("Extracted Text:" + extractedText);
           // Assuming `setText` and `analyzeResume` are provided elsewhere
           // setText(extractedText);
-          // analyzeResume(extractedText);
+          analyzeResume(extractedText);
           skillsToLearn(extractedText);
         } catch (error) {
           console.error("Error while extracting text from PDF:", error);
@@ -189,44 +189,74 @@ const DashboardPage = () => {
     }
   };
 
-const skillsToLearn = async (resumeText: string) => {
+  const skillsToLearn = async (resumeText: string) => {
     try {
-        const response = await fetch("/api/skills-to-learn", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ resumeText }), // Updated field name to match backend
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to fetch skills to learn");
-        }
-
-        const data = await response.json();
-        console.log("Skills to learn:", data);
-        return data; // Return the data if needed for further processing
-    } catch (error) {
-        console.error("Error fetching skills to learn:", error);
-        // Handle the error gracefully, e.g., display an error message to the user
-    }
-}
-
-
-  const analyzeResume = async (resumeText: string) => {
-    // Assume you have a backend endpoint /api/analyze-resume
-    try {
-      const response = await fetch("/api/useGemini", {
+      const response = await fetch("/api/skills-to-learn", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: resumeText }),
+        body: JSON.stringify({ resumeText }), // Updated field name to match backend
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch skills to learn");
+      }
+
       const data = await response.json();
-      console.log("Analysis Result:", data);
+      console.log("Skills to learn:", data);
+      return data; // Return the data if needed for further processing
     } catch (error) {
-      console.error("Error analyzing resume:", error);
+      console.error("Error fetching skills to learn:", error);
+      // Handle the error gracefully, e.g., display an error message to the user
+    }
+  }
+
+
+  const analyzeResume = async (resumeText: string) => {
+
+    // Get latest job from resume
+    const latestRole = await fetch('/api/latestRole', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ resume: resumeText })
+    }).then(res => {
+      return res.json()
+    });
+
+    // Get all rows with title similar to user's current role
+    const relatedRoles = await fetch('/api/roles', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title: latestRole.latestRole })
+    }).then(res => {
+      return res.json()
+    })
+
+    const analysis = []
+
+    for (let index = 0; index < relatedRoles.length; index++) {
+
+      // Assume you have a backend endpoint /api/analyze-resume
+      try {
+        const response = await fetch('/api/useGemini', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ resume: resumeText, role: relatedRoles[index] })
+        });
+        const data = await response.json();
+        analysis.push(data)
+        console.log('Analysis Result:', data);
+      } catch (error) {
+        console.error('Error analyzing resume:', error);
+      }
+
     }
   };
 

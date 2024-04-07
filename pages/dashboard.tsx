@@ -210,53 +210,52 @@ const DashboardPage = () => {
       console.error("Error fetching skills to learn:", error);
       // Handle the error gracefully, e.g., display an error message to the user
     }
-  }
-
+  };
 
   const analyzeResume = async (resumeText: string) => {
-
     // Get latest job from resume
-    const latestRole = await fetch('/api/latestRole', {
-      method: 'POST',
+    const latestRole = await fetch("/api/latestRole", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ resume: resumeText })
-    }).then(res => {
-      return res.json()
+      body: JSON.stringify({ resume: resumeText }),
+    }).then((res) => {
+      return res.json();
     });
 
     // Get all rows with title similar to user's current role
-    const relatedRoles = await fetch('/api/roles', {
-      method: 'POST',
+    const relatedRoles = await fetch("/api/roles", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title: latestRole.latestRole })
-    }).then(res => {
-      return res.json()
-    })
+      body: JSON.stringify({ title: latestRole.latestRole }),
+    }).then((res) => {
+      return res.json();
+    });
 
-    const analysis = []
+    const analysis = [];
 
     for (let index = 0; index < relatedRoles.length; index++) {
-
       // Assume you have a backend endpoint /api/analyze-resume
       try {
-        const response = await fetch('/api/useGemini', {
-          method: 'POST',
+        const response = await fetch("/api/useGemini", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ resume: resumeText, role: relatedRoles[index] })
+          body: JSON.stringify({
+            resume: resumeText,
+            role: relatedRoles[index],
+          }),
         });
         const data = await response.json();
-        analysis.push(data)
-        console.log('Analysis Result:', data);
+        analysis.push(data);
+        console.log("Analysis Result:", data);
       } catch (error) {
-        console.error('Error analyzing resume:', error);
+        console.error("Error analyzing resume:", error);
       }
-
     }
   };
 
@@ -558,12 +557,7 @@ const DashboardPage = () => {
                         flex="0 0 auto" // This makes sure that the box doesn't shrink
                         mx={2} // Add margin on the x-axis for spacing between items
                       >
-                        <SkillCard
-                          title={skill.title}
-                          description={skill.description}
-                          points={skill.points}
-                          outcome={skill.outcome}
-                        />
+                        <SkillCard title={skill.title} points={skill.points} />
                       </Box>
                     ))}
                   </Flex>

@@ -3,16 +3,12 @@ import { Box, Heading, Text, Button, VStack } from "@chakra-ui/react";
 
 interface SkillCardProps {
   title: string;
-  description: string;
   points: string[];
-  outcome: string;
 }
 
 const SkillCard: React.FC<SkillCardProps> = ({
   title,
-  description,
   points,
-  outcome,
 }) => {
   return (
     <Box
@@ -29,16 +25,13 @@ const SkillCard: React.FC<SkillCardProps> = ({
           {title}
         </Heading>
         <Text fontSize="sm" mb={2}>
-          {description}
+          Why Learn It?
         </Text>
         {points.map((point, i) => (
           <Text key={i} fontSize="sm" mb={1}>
             &bull; {point}
           </Text>
         ))}
-        <Text fontSize="sm" mb={3} fontWeight="semibold">
-          {outcome}
-        </Text>
         <Button backgroundColor="#7E00FB" color="white" width="full">
           Learn More
         </Button>
